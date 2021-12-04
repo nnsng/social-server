@@ -19,7 +19,7 @@ export const getPostResponse = async (filter, params) => {
 	const pagination = {
 		limit: _limit,
 		page: _page,
-		total: count,
+		totalRows: count,
 	};
 
 	return { data, pagination };

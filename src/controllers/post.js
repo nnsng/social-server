@@ -225,7 +225,7 @@ export const searchPosts = async (req, res) => {
 				$regex: new RegExp(searchTerm),
 				$options: 'i',
 			},
-		});
+		}).sort({ createdAt: -1 });
 
 		return res.status(200).send(postList);
 	} catch (error) {
