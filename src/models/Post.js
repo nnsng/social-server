@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import User from './User.js';
 import slug from 'mongoose-slug-updater';
 
 mongoose.plugin(slug);
@@ -15,6 +14,7 @@ const postSchema = new mongoose.Schema(
 			_id: String,
 			name: String,
 			avatar: String,
+			username: String,
 		},
 		tags: { type: [{ name: String, value: String }], default: [] },
 		likes: { type: [String], default: [] },
