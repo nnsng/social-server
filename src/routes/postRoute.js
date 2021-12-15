@@ -15,7 +15,7 @@ router.post('/:postSlug/like', postCtrl.likePost);
 
 router.post('/:postId/save', postCtrl.savePost);
 
-router.post('/:postId/un-save', postCtrl.unSavePost);
+router.post('/:postId/unsave', postCtrl.unSavePost);
 
 router
 	.route('/:postId')

@@ -8,12 +8,12 @@ router.post('/register', authCtrl.register);
 
 router.post('/login', authCtrl.login);
 
-router.post('/login/google', authCtrl.googleLogin);
+router.post('/google-login', authCtrl.googleLogin);
 
 router.get('/me', auth, authCtrl.getCurrentUser);
 
-router.post('/user/profile', auth, authCtrl.updateProfile);
+router.post('/update-profile', auth, authCtrl.updateProfile);
 
-router.post('/user/password', auth, authCtrl.changePassword);
+router.post('/change-password', auth, authCtrl.changePassword);
 
 export default router;

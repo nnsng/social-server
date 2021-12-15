@@ -64,7 +64,7 @@ const googleLogin = async (req, res) => {
 				name,
 				email,
 				avatar: picture,
-				password: email.split('@')[0],
+				password: '123456',
 				type: 'google',
 			};
 
