@@ -4,11 +4,11 @@ import express from 'express';
 import http from 'http';
 import mongoose from 'mongoose';
 import { Server } from 'socket.io';
-import socketServer from './config/socket.js';
+import { socketServer } from './config/socket.js';
+import auth from './middlewares/auth.js';
 import authRoute from './routes/authRoute.js';
 import commentRoute from './routes/commentRoute.js';
 import postRoute from './routes/postRoute.js';
-import auth from './middlewares/auth.js';
 
 dotenv.config();
 
@@ -30,6 +30,8 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
 	socketServer(socket, io);
 });
+
+export { io };
 
 // Routes
 app.use('/api/auth', authRoute);

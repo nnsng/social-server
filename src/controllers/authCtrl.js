@@ -16,7 +16,7 @@ const login = async (req, res) => {
 
 		loginUser(existedUser, password, res);
 	} catch (error) {
-		res.status(400).send(error);
+		res.status(500).send(error);
 	}
 };
 
@@ -37,7 +37,7 @@ const register = async (req, res) => {
 
 		registerUser(userParams, res);
 	} catch (error) {
-		res.status(400).send(error);
+		res.status(500).send(error);
 	}
 };
 
@@ -71,21 +71,21 @@ const googleLogin = async (req, res) => {
 			registerUser(newUser, res);
 		}
 	} catch (error) {
-		res.status(400).send(error);
+		res.status(500).send(error);
 	}
 };
 
 const getCurrentUser = async (req, res) => {
 	try {
 		if (!req.user)
-			return res.status(400).send({ message: 'Invalid Authentication.' });
+			return res.status(401).send({ message: 'Invalid Authentication.' });
 
 		const { _id } = req.user;
 		const user = await User.findById(_id).select('-password -saved').lean();
 
 		res.send(user);
 	} catch (error) {
-		res.status(400).send(error);
+		res.status(500).send(error);
 	}
 };
 
@@ -95,7 +95,7 @@ const updateProfile = async (req, res) => {
 		const { username } = data;
 
 		if (!req.user)
-			return res.status(400).send({ message: 'Invalid Authentication.' });
+			return res.status(401).send({ message: 'Invalid Authentication.' });
 
 		const { _id } = req.user;
 
@@ -121,7 +121,7 @@ const updateProfile = async (req, res) => {
 
 		res.send(updatedUser);
 	} catch (error) {
-		res.status(400).send(error);
+		res.status(500).send(error);
 	}
 };
 
@@ -130,7 +130,7 @@ const changePassword = async (req, res) => {
 		const { userId, currentPassword, newPassword } = req.body;
 
 		if (!req.user)
-			return res.status(400).send({ message: 'Invalid Authentication.' });
+			return res.status(401).send({ message: 'Invalid Authentication.' });
 
 		const user = req.user;
 
@@ -150,7 +150,7 @@ const changePassword = async (req, res) => {
 		);
 		res.sendStatus(200);
 	} catch (error) {
-		res.status(400).send(error);
+		res.status(500).send(error);
 	}
 };
 
@@ -170,8 +170,7 @@ const loginUser = async (user, password, res) => {
 
 		res.send({ user: loggedInUser, token });
 	} catch (error) {
-		console.log(error);
-		res.status(400).send(error);
+		res.status(500).send(error);
 	}
 };
 
@@ -190,7 +189,7 @@ const registerUser = async (user, res) => {
 
 		res.send({ user: savedUser, token });
 	} catch (error) {
-		res.status(400).send(error);
+		res.status(500).send(error);
 	}
 };
 

@@ -1,8 +1,8 @@
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
-import User from '../models/User.js';
+import { io } from '../index.js';
 
-const getPostComment = async (req, res) => {
+const getByPostId = async (req, res) => {
 	try {
 		const { postId } = req.query;
 
@@ -12,104 +12,105 @@ const getPostComment = async (req, res) => {
 
 		res.send(commentList);
 	} catch (error) {
-		res.status(400).send(error);
+		res.status(500).send(error);
 	}
 };
 
-const createComment = async (req, res) => {
+const create = async (req, res) => {
 	try {
+		if (!req.user)
+			return res.status(401).send({ message: 'Invalid Authentication.' });
+
+		const { _id, name, avatar } = req.user;
+
 		const formData = req.body;
 		const { postId } = formData;
 
-		if (!req.user)
-			return res.status(400).send({ message: 'Invalid Authentication.' });
+		const post = await Post.findById(postId).lean();
+		if (!post) return res.status(404).send({ message: 'Post not found' });
 
-		const newComment = new Comment(formData);
+		const newComment = new Comment({
+			...formData,
+			user: {
+				_id,
+				name,
+				avatar,
+			},
+		});
 		await newComment.save();
 
-		const postComments = await Comment.find({ postId }).lean();
-		console.log('~ postComments', postComments);
-		await Post.findByIdAndUpdate(postId, {
-			$set: { commentCount: postComments.length },
+		io.to(postId).emit('createComment', {
+			comment: newComment._doc,
 		});
 
-		res.send(newComment);
+		res.send(newComment._doc);
 	} catch (error) {
 		console.log('~ error', error);
-		res.status(400).send(error);
+		res.status(500).send(error);
 	}
 };
 
-const removeComment = async (req, res) => {
+const remove = async (req, res) => {
 	try {
 		const { commentId } = req.params;
 
 		if (!req.user)
-			return res.status(400).send({ message: 'Invalid Authentication.' });
+			return res.status(401).send({ message: 'Invalid Authentication.' });
 
 		const user = req.user;
 
 		const comment = await Comment.findById(commentId).lean();
 		if (!comment)
-			return res.status(400).send({ message: 'Comment not found.' });
+			return res.status(404).send({ message: 'Comment not found.' });
 
 		if (user.role !== 'admin' && comment.userId !== user._id)
 			return res
-				.status(400)
+				.status(403)
 				.send('You are not authorized to delete this comment');
 
 		await Comment.deleteOne({ _id: commentId });
 
-		const postComments = await Comment.find({ postId: comment?.postId }).lean();
-		await Post.updateOne(
-			{ _id: comment?.postId },
-			{
-				$set: { commentCount: postComments.length },
-			}
-		);
+		io.to(comment.postId).emit('removeComment', { id: comment._id });
 
 		res.send({ message: 'Comment deleted' });
 	} catch (error) {
-		res.status(400).send(error);
+		res.status(500).send(error);
 	}
 };
 
-const likeComment = async (req, res) => {
+const like = async (req, res) => {
 	try {
 		const { commentId } = req.params;
 
 		if (!req.user)
-			return res.status(400).send({ message: 'Invalid Authentication.' });
+			return res.status(401).send({ message: 'Invalid Authentication.' });
 
 		const { _id: userId } = req.user;
 
-		const comment = await Comment.findById(commentId);
-		const likeArray = comment.likes;
+		const comment = await Comment.findById(commentId).lean();
+		if (!comment) return res.status(404).send({ message: 'Comment not found' });
 
-		if (!likeArray.includes(userId)) {
-			likeArray.push(userId);
-		} else {
-			const idx = likeArray.indexOf(userId);
-			likeArray.splice(idx, 1);
-		}
+		const isLiked = comment.likes.includes(userId);
 
-		const updatedComment = await Comment.findByIdAndUpdate(
-			commentId,
-			{ $set: { likes: likeArray } },
-			{ new: true }
-		);
+		const update = isLiked
+			? { $pull: { likes: userId } }
+			: { $push: { likes: userId } };
+
+		const updatedComment = await Comment.findByIdAndUpdate(commentId, update, {
+			new: true,
+		}).lean();
 
 		res.send(updatedComment);
 	} catch (error) {
-		res.status(400).send(error);
+		res.status(500).send(error);
 	}
 };
 
 const commentCtrl = {
-	getPostComment,
-	createComment,
-	removeComment,
-	likeComment,
+	getByPostId,
+	create,
+	remove,
+	like,
 };
 
 export default commentCtrl;

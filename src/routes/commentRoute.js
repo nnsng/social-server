@@ -4,13 +4,13 @@ import auth from '../middlewares/auth.js';
 
 const router = express.Router();
 
-router.delete('/:commentId', auth, commentCtrl.removeComment);
+router.delete('/:commentId', auth, commentCtrl.remove);
 
-router.post('/:commentId/like', auth, commentCtrl.likeComment);
+router.post('/:commentId/like', auth, commentCtrl.like);
 
 router
 	.route('/')
-	.get(auth, commentCtrl.getPostComment)
-	.post(auth, commentCtrl.createComment);
+	.get(auth, commentCtrl.getByPostId)
+	.post(auth, commentCtrl.create);
 
 export default router;

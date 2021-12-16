@@ -3,26 +3,26 @@ import postCtrl from '../controllers/postCtrl.js';
 
 const router = express.Router();
 
-router.get('/search', postCtrl.searchPosts);
+router.get('/search', postCtrl.search);
 
-router.get('/my', postCtrl.getMyPosts);
+router.get('/my', postCtrl.getMyPostList);
 
-router.get('/saved', postCtrl.getSavedPostList);
+router.get('/saved', postCtrl.getSavedList);
 
 router.get('/detail/:postSlug', postCtrl.getBySlug);
 
-router.post('/:postSlug/like', postCtrl.likePost);
+router.post('/:postSlug/like', postCtrl.like);
 
-router.post('/:postId/save', postCtrl.savePost);
+router.post('/:postId/save', postCtrl.save);
 
-router.post('/:postId/unsave', postCtrl.unSavePost);
+router.post('/:postId/unsave', postCtrl.unSave);
 
 router
 	.route('/:postId')
-	.get(postCtrl.getPostForEdit)
-	.patch(postCtrl.updatePost)
-	.delete(postCtrl.removePost);
+	.get(postCtrl.getForEdit)
+	.patch(postCtrl.update)
+	.delete(postCtrl.remove);
 
-router.route('/').get(postCtrl.getAll).post(postCtrl.createPost);
+router.route('/').get(postCtrl.getAll).post(postCtrl.create);
 
 export default router;
