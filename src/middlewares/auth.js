@@ -11,14 +11,14 @@ async function auth(req, res, next) {
 
 		const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 		if (!decoded)
-			return res.status(401).send({ message: 'Invalid Authentication.' });
+			return res.status(403).send({ message: 'Invalid Authentication.' });
 
 		const user = await User.findOne({ _id: decoded._id })
 			.select('-password')
 			.lean();
 		if (!user) return res.status(400).send({ message: 'User does not exist.' });
 
-		req.user = { ...user, _id: user._id.toString() };
+		req.user = user;
 
 		next();
 	} catch (error) {

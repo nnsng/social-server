@@ -43,10 +43,6 @@ const getBySlug = async (req, res) => {
 const getForEdit = async (req, res) => {
 	try {
 		const { postId } = req.params;
-
-		if (!req.user)
-			return res.status(401).send({ message: 'Invalid Authentication.' });
-
 		const user = req.user;
 
 		const post = await Post.findById(postId).lean();
@@ -61,10 +57,6 @@ const getForEdit = async (req, res) => {
 const getMyPostList = async (req, res) => {
 	try {
 		const params = req.query;
-
-		if (!req.user)
-			return res.status(401).send({ message: 'Invalid Authentication.' });
-
 		const user = req.user;
 
 		const filter = { authorId: user._id };
@@ -79,10 +71,6 @@ const getMyPostList = async (req, res) => {
 const getSavedList = async (req, res) => {
 	try {
 		const params = req.query;
-
-		if (!req.user)
-			return res.status(401).send({ message: 'Invalid Authentication.' });
-
 		const { saved } = req.user;
 
 		const filter = { _id: { $in: saved } };
@@ -97,10 +85,6 @@ const getSavedList = async (req, res) => {
 const create = async (req, res) => {
 	try {
 		const formData = req.body;
-
-		if (!req.user)
-			return res.status(401).send({ message: 'Invalid Authentication.' });
-
 		const { _id, name, avatar } = req.user;
 
 		const newPost = new Post({
@@ -116,6 +100,7 @@ const create = async (req, res) => {
 
 		res.send(savedPost?._doc);
 	} catch (error) {
+		console.log('~ error', error);
 		res.status(500).send(error);
 	}
 };
@@ -124,20 +109,16 @@ const update = async (req, res) => {
 	try {
 		const { postId } = req.params;
 		const formData = req.body;
-
-		if (!req.user)
-			return res.status(401).send({ message: 'Invalid Authentication.' });
-
 		const user = req.user;
 
-		if (user.role !== 'admin' && formData.authorId !== user._id)
+		if (user.role !== 'admin' && !formData.authorId.equals(user._id))
 			return res.status(400).send('You are not authorized to edit this post');
 
 		const updatedPost = await Post.findByIdAndUpdate(
 			postId,
 			{ $set: formData },
 			{ new: true }
-		);
+		).lean();
 
 		res.send(updatedPost);
 	} catch (error) {
@@ -148,16 +129,12 @@ const update = async (req, res) => {
 const remove = async (req, res) => {
 	try {
 		const { postId } = req.params;
-
-		if (!req.user)
-			return res.status(401).send({ message: 'Invalid Authentication.' });
-
 		const user = req.user;
 
 		const post = await Post.findById(postId).lean();
 		if (!post) return res.status(404).send({ message: 'Post not found' });
 
-		if (user.role !== 'admin' && post.authorId !== user._id)
+		if (user.role !== 'admin' && !post.authorId.equals(user._id))
 			return res.status(400).send('You are not authorized to delete this post');
 
 		await Post.deleteOne({ _id: postId });
@@ -176,10 +153,6 @@ const remove = async (req, res) => {
 const like = async (req, res) => {
 	try {
 		const { postSlug } = req.params;
-
-		if (!req.user)
-			return res.status(401).send({ message: 'Invalid Authentication.' });
-
 		const { _id: userId } = req.user;
 
 		const post = await Post.findOne({ slug: postSlug });
@@ -206,10 +179,6 @@ const like = async (req, res) => {
 const save = async (req, res) => {
 	try {
 		const { postId } = req.params;
-
-		if (!req.user)
-			return res.status(401).send({ message: 'Invalid Authentication.' });
-
 		const user = req.user;
 
 		const post = await Post.findById(postId).lean();
@@ -230,10 +199,6 @@ const save = async (req, res) => {
 const unSave = async (req, res) => {
 	try {
 		const { postId } = req.params;
-
-		if (!req.user)
-			return res.status(401).send({ message: 'Invalid Authentication.' });
-
 		const user = req.user;
 
 		const post = await Post.findById(postId).lean();
@@ -278,7 +243,7 @@ const search = async (req, res) => {
 	}
 };
 
-const authCtrl = {
+const postCtrl = {
 	getAll,
 	getBySlug,
 	getForEdit,
@@ -293,4 +258,4 @@ const authCtrl = {
 	search,
 };
 
-export default authCtrl;
+export default postCtrl;

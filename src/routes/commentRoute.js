@@ -1,16 +1,12 @@
 import express from 'express';
 import commentCtrl from '../controllers/commentCtrl.js';
-import auth from '../middlewares/auth.js';
 
 const router = express.Router();
 
-router.delete('/:commentId', auth, commentCtrl.remove);
+router.post('/:commentId/like', commentCtrl.like);
 
-router.post('/:commentId/like', auth, commentCtrl.like);
+router.delete('/:commentId', commentCtrl.remove);
 
-router
-	.route('/')
-	.get(auth, commentCtrl.getByPostId)
-	.post(auth, commentCtrl.create);
+router.route('/').get(commentCtrl.getByPostId).post(commentCtrl.create);
 
 export default router;

@@ -2,15 +2,27 @@ import mongoose from 'mongoose';
 
 const commentSchema = new mongoose.Schema(
 	{
-		postId: { type: String, required: true },
-		content: { type: String, required: true },
-		userId: { type: String, required: true },
+		postId: {
+			type: mongoose.Schema.Types.ObjectId,
+			required: true,
+		},
+		content: {
+			type: String,
+			required: true,
+		},
+		userId: {
+			type: mongoose.Schema.Types.ObjectId,
+			required: true,
+		},
 		user: {
-			_id: String,
+			_id: mongoose.Schema.Types.ObjectId,
 			name: String,
 			avatar: String,
 		},
-		likes: { type: [String], default: [] },
+		likes: {
+			type: [mongoose.Schema.Types.ObjectId],
+			default: [],
+		},
 	},
 	{
 		timestamps: true,

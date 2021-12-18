@@ -1,4 +1,4 @@
-export const socketServer = (socket, io) => {
+export const socketServer = (socket) => {
 	socket.on('joinRoom', ({ id }) => {
 		socket.join(id);
 	});

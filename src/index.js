@@ -2,8 +2,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import http from 'http';
-import mongoose from 'mongoose';
 import { Server } from 'socket.io';
+import { connectToDatabase } from './config/database.js';
 import { socketServer } from './config/socket.js';
 import auth from './middlewares/auth.js';
 import authRoute from './routes/authRoute.js';
@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-// Socket.io
+// Socket
 const server = http.createServer(app);
 const io = new Server(server, {
 	cors: {
@@ -27,9 +27,7 @@ const io = new Server(server, {
 	},
 });
 
-io.on('connection', (socket) => {
-	socketServer(socket, io);
-});
+io.on('connection', socketServer);
 
 export { io };
 
@@ -40,17 +38,7 @@ app.use('/api/comments', auth, commentRoute);
 
 // Database
 const URI = process.env.MONGODB_URI;
-mongoose.connect(
-	URI,
-	{
-		useNewUrlParser: true,
-		useUnifiedTopology: true,
-	},
-	(error) => {
-		if (error) throw error;
-		console.log('Connected to MongoDB');
-	}
-);
+connectToDatabase(URI);
 
 // Server listening
 const PORT = process.env.PORT || 4000;

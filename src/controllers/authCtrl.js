@@ -77,9 +77,6 @@ const googleLogin = async (req, res) => {
 
 const getCurrentUser = async (req, res) => {
 	try {
-		if (!req.user)
-			return res.status(401).send({ message: 'Invalid Authentication.' });
-
 		const { _id } = req.user;
 		const user = await User.findById(_id).select('-password -saved').lean();
 
@@ -93,10 +90,6 @@ const updateProfile = async (req, res) => {
 	try {
 		const data = req.body;
 		const { username } = data;
-
-		if (!req.user)
-			return res.status(401).send({ message: 'Invalid Authentication.' });
-
 		const { _id } = req.user;
 
 		const existedUsername = await User.findOne({ username });
@@ -128,10 +121,6 @@ const updateProfile = async (req, res) => {
 const changePassword = async (req, res) => {
 	try {
 		const { userId, currentPassword, newPassword } = req.body;
-
-		if (!req.user)
-			return res.status(401).send({ message: 'Invalid Authentication.' });
-
 		const user = req.user;
 
 		// Check password validity
