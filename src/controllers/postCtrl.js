@@ -3,7 +3,7 @@ import User from '../models/User.js';
 import Comment from '../models/Comment.js';
 import { getPostResponse } from '../utils/mongoose.js';
 
-const getAll = async (req, res) => {
+async function getAll(req, res) {
 	try {
 		const params = req.query;
 
@@ -23,14 +23,15 @@ const getAll = async (req, res) => {
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const getBySlug = async (req, res) => {
+async function getBySlug(req, res) {
 	try {
 		const { postSlug } = req.params;
 
 		const post = await Post.findOne({ slug: postSlug }).lean();
-		if (!post) return res.status(404).send({ message: 'Post not found' });
+		if (!post)
+			return res.status(404).send({ message: 'Bài viết không tồn tại' });
 
 		const commentCount = await Comment.countDocuments({ postId: post._id });
 
@@ -38,23 +39,29 @@ const getBySlug = async (req, res) => {
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const getForEdit = async (req, res) => {
+async function getForEdit(req, res) {
 	try {
 		const { postId } = req.params;
 		const user = req.user;
 
 		const post = await Post.findById(postId).lean();
-		if (!post) return res.status(404).send({ message: 'Post not found' });
+		if (!post)
+			return res.status(404).send({ message: 'bài viết không tồn tại' });
+
+		if (user.role !== 'admin' && !post.authorId.equals(user._id))
+			return res
+				.status(403)
+				.send({ message: 'Bạn không có quyền chỉnh sửa bài viết này' });
 
 		res.send(post);
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const getMyPostList = async (req, res) => {
+async function getMyPostList(req, res) {
 	try {
 		const params = req.query;
 		const user = req.user;
@@ -66,9 +73,9 @@ const getMyPostList = async (req, res) => {
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const getSavedList = async (req, res) => {
+async function getSavedList(req, res) {
 	try {
 		const params = req.query;
 		const { saved } = req.user;
@@ -80,9 +87,9 @@ const getSavedList = async (req, res) => {
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const create = async (req, res) => {
+async function create(req, res) {
 	try {
 		const formData = req.body;
 		const { _id, name, avatar } = req.user;
@@ -100,19 +107,18 @@ const create = async (req, res) => {
 
 		res.send(savedPost?._doc);
 	} catch (error) {
-		console.log('~ error', error);
 		res.status(500).send(error);
 	}
-};
+}
 
-const update = async (req, res) => {
+async function update(req, res) {
 	try {
 		const { postId } = req.params;
 		const formData = req.body;
 		const user = req.user;
 
 		if (user.role !== 'admin' && !formData.authorId.equals(user._id))
-			return res.status(400).send('You are not authorized to edit this post');
+			return res.status(403).send('Bạn không có quyền chỉnh sửa bài viết này');
 
 		const updatedPost = await Post.findByIdAndUpdate(
 			postId,
@@ -124,18 +130,19 @@ const update = async (req, res) => {
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const remove = async (req, res) => {
+async function remove(req, res) {
 	try {
 		const { postId } = req.params;
 		const user = req.user;
 
 		const post = await Post.findById(postId).lean();
-		if (!post) return res.status(404).send({ message: 'Post not found' });
+		if (!post)
+			return res.status(404).send({ message: 'Bài viết không tồn tại' });
 
 		if (user.role !== 'admin' && !post.authorId.equals(user._id))
-			return res.status(400).send('You are not authorized to delete this post');
+			return res.status(403).send('Bạn không có quyền xóa bài viết này');
 
 		await Post.deleteOne({ _id: postId });
 		await Comment.deleteMany({ postId });
@@ -144,19 +151,20 @@ const remove = async (req, res) => {
 			{ $pull: { saved: postId } }
 		);
 
-		res.send({ message: 'Post deleted' });
+		res.sendStatus(200);
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const like = async (req, res) => {
+async function like(req, res) {
 	try {
-		const { postSlug } = req.params;
+		const { postId } = req.params;
 		const { _id: userId } = req.user;
 
-		const post = await Post.findOne({ slug: postSlug });
-		if (!post) return res.status(404).send({ message: 'Post not found' });
+		const post = await Post.findById(postId);
+		if (!post)
+			return res.status(404).send({ message: 'Bài viết không tồn tại' });
 
 		const isLiked = post.likes.includes(userId);
 
@@ -164,25 +172,24 @@ const like = async (req, res) => {
 			? { $pull: { likes: userId } }
 			: { $push: { likes: userId } };
 
-		const updatedPost = await Post.findOneAndUpdate(
-			{ slug: postSlug },
-			update,
-			{ new: true }
-		).lean();
+		const updatedPost = await Post.findByIdAndUpdate(postId, update, {
+			new: true,
+		}).lean();
 
 		res.send(updatedPost);
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const save = async (req, res) => {
+async function save(req, res) {
 	try {
 		const { postId } = req.params;
 		const user = req.user;
 
 		const post = await Post.findById(postId).lean();
-		if (!post) return res.status(404).send({ message: 'Post not found' });
+		if (!post)
+			return res.status(404).send({ message: 'Bài viết không tồn tại' });
 
 		if (user.saved.includes(postId)) {
 			return res.status(400).send({ message: 'Bài viết đã được lưu' });
@@ -190,19 +197,20 @@ const save = async (req, res) => {
 
 		await User.updateOne({ _id: user._id }, { $push: { saved: postId } });
 
-		res.send({ message: 'Successfully' });
+		res.sendStatus(200);
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const unSave = async (req, res) => {
+async function unSave(req, res) {
 	try {
 		const { postId } = req.params;
 		const user = req.user;
 
 		const post = await Post.findById(postId).lean();
-		if (!post) return res.status(404).send({ message: 'Post not found' });
+		if (!post)
+			return res.status(404).send({ message: 'Bài viết không tồn tại' });
 
 		const indexOfPostId = user.saved.findIndex((id) => id === postId);
 		if (indexOfPostId < 0)
@@ -219,13 +227,13 @@ const unSave = async (req, res) => {
 			{ new: true }
 		);
 
-		res.send({ message: 'Successfully' });
+		res.sendStatus(200);
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const search = async (req, res) => {
+async function search(req, res) {
 	try {
 		const { q: searchTerm } = req.query;
 
@@ -238,10 +246,9 @@ const search = async (req, res) => {
 
 		return res.send(postList);
 	} catch (error) {
-		console.log(error);
 		res.status(500).send(error);
 	}
-};
+}
 
 const postCtrl = {
 	getAll,

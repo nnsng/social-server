@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-export const connectToDatabase = (uri) => {
+export function connectToDatabase(uri) {
 	mongoose.connect(
 		uri,
 		{
@@ -12,4 +12,4 @@ export const connectToDatabase = (uri) => {
 			console.log('Connected to MongoDB');
 		}
 	);
-};
+}

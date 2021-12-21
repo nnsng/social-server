@@ -11,7 +11,7 @@ router.get('/saved', postCtrl.getSavedList);
 
 router.get('/detail/:postSlug', postCtrl.getBySlug);
 
-router.post('/:postSlug/like', postCtrl.like);
+router.post('/:postId/like', postCtrl.like);
 
 router.post('/:postId/save', postCtrl.save);
 

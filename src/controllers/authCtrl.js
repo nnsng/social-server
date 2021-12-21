@@ -6,7 +6,7 @@ import User from '../models/User.js';
 import { hashPassword } from '../utils/common.js';
 import { generateAccessToken } from '../utils/generateToken.js';
 
-const login = async (req, res) => {
+async function login(req, res) {
 	try {
 		const { email, password } = req.body;
 
@@ -18,9 +18,9 @@ const login = async (req, res) => {
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const register = async (req, res) => {
+async function register(req, res) {
 	try {
 		const { email, password, firstName, lastName } = req.body;
 
@@ -39,9 +39,9 @@ const register = async (req, res) => {
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const googleLogin = async (req, res) => {
+async function googleLogin(req, res) {
 	try {
 		const { idToken } = req.body;
 
@@ -73,27 +73,29 @@ const googleLogin = async (req, res) => {
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const getCurrentUser = async (req, res) => {
+async function getCurrentUser(req, res) {
 	try {
 		const { _id } = req.user;
+
 		const user = await User.findById(_id).select('-password -saved').lean();
+		if (!user) return res.status(404).send({ message: 'User not found' });
 
 		res.send(user);
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const updateProfile = async (req, res) => {
+async function updateProfile(req, res) {
 	try {
 		const data = req.body;
 		const { username } = data;
 		const { _id } = req.user;
 
 		const existedUsername = await User.findOne({ username });
-		if (existedUsername && existedUsername._id.toString() !== _id)
+		if (existedUsername && !existedUsername._id.equals(_id))
 			return res.status(400).send({ message: 'Tên người dùng đã tồn tại' });
 
 		await User.updateOne({ _id }, { $set: data });
@@ -116,9 +118,9 @@ const updateProfile = async (req, res) => {
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const changePassword = async (req, res) => {
+async function changePassword(req, res) {
 	try {
 		const { userId, currentPassword, newPassword } = req.body;
 		const user = req.user;
@@ -141,9 +143,9 @@ const changePassword = async (req, res) => {
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const loginUser = async (user, password, res) => {
+async function loginUser(user, password, res) {
 	try {
 		if (user.type === 'email') {
 			const validPassword = await bcrypt.compare(password, user.password);
@@ -161,26 +163,20 @@ const loginUser = async (user, password, res) => {
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const registerUser = async (user, res) => {
+async function registerUser(user, res) {
 	try {
 		const hashedPassword = await hashPassword(user.password);
 
 		const newUser = new User({ ...user, password: hashedPassword });
 		await newUser.save();
 
-		const savedUser = await User.findOne({ email: user.email })
-			.select('-password -saved')
-			.lean();
-
-		const token = generateAccessToken({ _id: savedUser._id });
-
-		res.send({ user: savedUser, token });
+		res.sendStatus(200);
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
 const authCtrl = {
 	register,

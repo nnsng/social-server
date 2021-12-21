@@ -2,7 +2,7 @@ import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import { io } from '../index.js';
 
-const getByPostId = async (req, res) => {
+async function getByPostId(req, res) {
 	try {
 		const { postId } = req.query;
 
@@ -14,16 +14,17 @@ const getByPostId = async (req, res) => {
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const create = async (req, res) => {
+async function create(req, res) {
 	try {
 		const formData = req.body;
 		const { postId } = formData;
 		const { _id, name, avatar } = req.user;
 
 		const post = await Post.findById(postId).lean();
-		if (!post) return res.status(404).send({ message: 'Post not found' });
+		if (!post)
+			return res.status(404).send({ message: 'Bài viết không tồn tại' });
 
 		const newComment = new Comment({
 			...formData,
@@ -43,39 +44,38 @@ const create = async (req, res) => {
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const remove = async (req, res) => {
+async function remove(req, res) {
 	try {
 		const { commentId } = req.params;
 		const user = req.user;
 
 		const comment = await Comment.findById(commentId).lean();
 		if (!comment)
-			return res.status(404).send({ message: 'Comment not found.' });
+			return res.status(404).send({ message: 'Bình luận không tồn tại' });
 
 		if (user.role !== 'admin' && !comment.userId.equals(user._id))
-			return res
-				.status(403)
-				.send('You are not authorized to delete this comment');
+			return res.status(403).send('Bạn không có quyền xóa bình luận này');
 
 		await Comment.deleteOne({ _id: commentId });
 
 		io.to(`${comment.postId}`).emit('removeComment', { id: comment._id });
 
-		res.send({ message: 'Comment deleted' });
+		res.sendStatus(200);
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
-const like = async (req, res) => {
+async function like(req, res) {
 	try {
 		const { commentId } = req.params;
 		const { _id: userId } = req.user;
 
 		const comment = await Comment.findById(commentId).lean();
-		if (!comment) return res.status(404).send({ message: 'Comment not found' });
+		if (!comment)
+			return res.status(404).send({ message: 'Bình luận không tồn tại' });
 
 		const isLiked = comment.likes.includes(userId);
 
@@ -91,7 +91,7 @@ const like = async (req, res) => {
 	} catch (error) {
 		res.status(500).send(error);
 	}
-};
+}
 
 const commentCtrl = {
 	getByPostId,

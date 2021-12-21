@@ -1,6 +1,6 @@
 import Post from '../models/Post.js';
 
-export const getPostResponse = async (filter, params) => {
+export async function getPostResponse(filter, params) {
 	try {
 		const { limit, page, sort, order } = params;
 
@@ -27,4 +27,4 @@ export const getPostResponse = async (filter, params) => {
 	} catch (error) {
 		throw error;
 	}
-};
+}

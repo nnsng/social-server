@@ -1,4 +1,4 @@
-export const socketServer = (socket) => {
+export function socketServer(socket) {
 	socket.on('joinRoom', ({ id }) => {
 		socket.join(id);
 	});
@@ -10,4 +10,4 @@ export const socketServer = (socket) => {
 	socket.on('disconnect', () => {
 		console.log(socket.id + ' disconnected');
 	});
-};
+}

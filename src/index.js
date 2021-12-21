@@ -6,6 +6,8 @@ import { Server } from 'socket.io';
 import { connectToDatabase } from './config/database.js';
 import { socketServer } from './config/socket.js';
 import auth from './middlewares/auth.js';
+import checkAdmin from './middlewares/checkAdmin.js';
+import adminRoute from './routes/adminRoute.js';
 import authRoute from './routes/authRoute.js';
 import commentRoute from './routes/commentRoute.js';
 import postRoute from './routes/postRoute.js';
@@ -35,6 +37,7 @@ export { io };
 app.use('/api/auth', authRoute);
 app.use('/api/posts', auth, postRoute);
 app.use('/api/comments', auth, commentRoute);
+app.use('/api/admin', checkAdmin, adminRoute);
 
 // Database
 const URI = process.env.MONGODB_URI;
