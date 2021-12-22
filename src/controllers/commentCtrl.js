@@ -77,7 +77,7 @@ async function like(req, res) {
 		if (!comment)
 			return res.status(404).send({ message: 'Bình luận không tồn tại' });
 
-		const isLiked = comment.likes.includes(userId);
+		const isLiked = comment.likes.some((id) => id.equals(userId));
 
 		const update = isLiked
 			? { $pull: { likes: userId } }
