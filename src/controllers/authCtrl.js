@@ -94,7 +94,7 @@ async function updateProfile(req, res) {
 		const { username } = data;
 		const { _id } = req.user;
 
-		const existedUsername = await User.findOne({ username });
+		const existedUsername = await User.findOne({ username }).lean();
 		if (existedUsername && !existedUsername._id.equals(_id))
 			return res.status(400).send({ message: 'Tên người dùng đã tồn tại' });
 

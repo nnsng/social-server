@@ -117,7 +117,11 @@ async function update(req, res) {
 		const formData = req.body;
 		const user = req.user;
 
-		if (user.role !== 'admin' && !formData.authorId.equals(user._id))
+		const post = await Post.findById(postId).lean();
+		if (!post)
+			return res.status(404).send({ message: 'Bài viết không tồn tại' });
+
+		if (user.role !== 'admin' && !post.authorId.equals(user._id))
 			return res.status(403).send('Bạn không có quyền chỉnh sửa bài viết này');
 
 		const updatedPost = await Post.findByIdAndUpdate(
