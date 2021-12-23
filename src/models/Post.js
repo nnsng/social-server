@@ -47,7 +47,6 @@ const postSchema = new mongoose.Schema(
 			type: String,
 			slug: 'title',
 			unique: true,
-			slugOn: { findOneAndUpdate: true },
 		},
 	},
 	{

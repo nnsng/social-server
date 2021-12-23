@@ -107,6 +107,7 @@ async function create(req, res) {
 
 		res.send(savedPost?._doc);
 	} catch (error) {
+		console.log('~ error', error);
 		res.status(500).send(error);
 	}
 }
