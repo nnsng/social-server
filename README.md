@@ -1,3 +1,3 @@
-# Blog App - Server
+# Blog App Server
 
-[https://blog-app-server-nns.herokuapp.com](https://blog-app-server-nns.herokuapp.com)
+API: [https://blog-app-server-nns.herokuapp.com/api](https://blog-app-server-nns.herokuapp.com/api)
