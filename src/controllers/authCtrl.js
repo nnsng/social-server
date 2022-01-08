@@ -11,8 +11,7 @@ async function login(req, res) {
 		const { email, password } = req.body;
 
 		const existedUser = await User.findOne({ email });
-		if (!existedUser)
-			return res.status(400).send({ message: 'Email chưa được đăng ký' });
+		if (!existedUser) return res.status(400).send({ message: 'Email chưa được đăng ký' });
 
 		loginUser(existedUser, password, res);
 	} catch (error) {
@@ -32,8 +31,7 @@ async function register(req, res) {
 		};
 
 		const existedUser = await User.findOne({ email: userParams.email });
-		if (existedUser)
-			return res.status(400).send({ message: 'Email đã tồn tại' });
+		if (existedUser) return res.status(400).send({ message: 'Email đã tồn tại' });
 
 		registerUser(userParams, res);
 	} catch (error) {
@@ -100,9 +98,7 @@ async function updateProfile(req, res) {
 
 		await User.updateOne({ _id }, { $set: data });
 
-		const updatedUser = await User.findById(_id)
-			.select('-password -saved')
-			.lean();
+		const updatedUser = await User.findById(_id).select('-password -saved').lean();
 
 		const user = {
 			_id: updatedUser._id,
@@ -128,17 +124,12 @@ async function changePassword(req, res) {
 		// Check password validity
 		const validPassword = await bcrypt.compare(currentPassword, user.password);
 		if (!validPassword)
-			return res
-				.status(400)
-				.send({ message: 'Mật khẩu hiện tại không chính xác' });
+			return res.status(400).send({ message: 'Mật khẩu hiện tại không chính xác' });
 
 		// Hash password
 		const hashedPassword = await hashPassword(newPassword);
 
-		await User.updateOne(
-			{ _id: userId },
-			{ $set: { password: hashedPassword } }
-		);
+		await User.updateOne({ _id: userId }, { $set: { password: hashedPassword } });
 		res.sendStatus(200);
 	} catch (error) {
 		res.status(500).send(error);
@@ -149,13 +140,10 @@ async function loginUser(user, password, res) {
 	try {
 		if (user.type === 'email') {
 			const validPassword = await bcrypt.compare(password, user.password);
-			if (!validPassword)
-				return res.status(400).send({ message: 'Mật khẩu không chính xác' });
+			if (!validPassword) return res.status(400).send({ message: 'Mật khẩu không chính xác' });
 		}
 
-		const loggedInUser = await User.findById(user._id)
-			.select('-password -saved')
-			.lean();
+		const loggedInUser = await User.findById(user._id).select('-password -saved').lean();
 
 		const token = generateAccessToken({ _id: loggedInUser._id });
 
