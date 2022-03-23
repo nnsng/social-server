@@ -17,11 +17,7 @@ router.post('/:postId/save', postCtrl.save);
 
 router.post('/:postId/unsave', postCtrl.unSave);
 
-router
-	.route('/:postId')
-	.get(postCtrl.getForEdit)
-	.patch(postCtrl.update)
-	.delete(postCtrl.remove);
+router.route('/:postId').get(postCtrl.getForEdit).patch(postCtrl.update).delete(postCtrl.remove);
 
 router.route('/').get(postCtrl.getAll).post(postCtrl.create);
 

@@ -7,172 +7,172 @@ import { hashPassword } from '../utils/common.js';
 import { generateAccessToken } from '../utils/generateToken.js';
 
 async function login(req, res) {
-	try {
-		const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-		const existedUser = await User.findOne({ email });
-		if (!existedUser) return res.status(400).send({ message: 'Email chưa được đăng ký' });
+    const existedUser = await User.findOne({ email });
+    if (!existedUser) return res.status(400).send({ message: 'Email chưa được đăng ký' });
 
-		loginUser(existedUser, password, res);
-	} catch (error) {
-		res.status(500).send(error);
-	}
+    loginUser(existedUser, password, res);
+  } catch (error) {
+    res.status(500).send(error);
+  }
 }
 
 async function register(req, res) {
-	try {
-		const { email, password, firstName, lastName } = req.body;
+  try {
+    const { email, password, firstName, lastName } = req.body;
 
-		const userParams = {
-			email,
-			password,
-			name: `${firstName} ${lastName}`,
-			type: 'local',
-		};
+    const userParams = {
+      email,
+      password,
+      name: `${firstName} ${lastName}`,
+      type: 'local',
+    };
 
-		const existedUser = await User.findOne({ email: userParams.email });
-		if (existedUser) return res.status(400).send({ message: 'Email đã tồn tại' });
+    const existedUser = await User.findOne({ email: userParams.email });
+    if (existedUser) return res.status(400).send({ message: 'Email đã tồn tại' });
 
-		registerUser(userParams, res);
-	} catch (error) {
-		res.status(500).send(error);
-	}
+    registerUser(userParams, res);
+  } catch (error) {
+    res.status(500).send(error);
+  }
 }
 
 async function googleLogin(req, res) {
-	try {
-		const { idToken } = req.body;
+  try {
+    const { idToken } = req.body;
 
-		const clientId = process.env.GOOGLE_CLIENT_ID;
-		const client = new OAuth2Client(clientId);
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const client = new OAuth2Client(clientId);
 
-		const ticket = await client.verifyIdToken({
-			idToken,
-			audience: clientId,
-		});
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: clientId,
+    });
 
-		const { email, name, picture } = ticket.getPayload();
+    const { email, name, picture } = ticket.getPayload();
 
-		const existedUser = await User.findOne({ email });
+    const existedUser = await User.findOne({ email });
 
-		if (existedUser) {
-			loginUser(existedUser, '', res);
-		} else {
-			const newUser = {
-				name,
-				email,
-				avatar: picture,
-				password: '123456',
-				type: 'google',
-			};
+    if (existedUser) {
+      loginUser(existedUser, '', res);
+    } else {
+      const newUser = {
+        name,
+        email,
+        avatar: picture,
+        password: '123456',
+        type: 'google',
+      };
 
-			registerUser(newUser, res);
-		}
-	} catch (error) {
-		res.status(500).send(error);
-	}
+      registerUser(newUser, res);
+    }
+  } catch (error) {
+    res.status(500).send(error);
+  }
 }
 
 async function getCurrentUser(req, res) {
-	try {
-		const { _id } = req.user;
+  try {
+    const { _id } = req.user;
 
-		const user = await User.findById(_id).select('-password -saved').lean();
-		if (!user) return res.status(404).send({ message: 'User not found' });
+    const user = await User.findById(_id).select('-password -saved').lean();
+    if (!user) return res.status(404).send({ message: 'User not found' });
 
-		res.send(user);
-	} catch (error) {
-		res.status(500).send(error);
-	}
+    res.send(user);
+  } catch (error) {
+    res.status(500).send(error);
+  }
 }
 
 async function updateProfile(req, res) {
-	try {
-		const data = req.body;
-		const { username } = data;
-		const { _id } = req.user;
+  try {
+    const data = req.body;
+    const { username } = data;
+    const { _id } = req.user;
 
-		const existedUsername = await User.findOne({ username }).lean();
-		if (existedUsername && !existedUsername._id.equals(_id))
-			return res.status(400).send({ message: 'Tên người dùng đã tồn tại' });
+    const existedUsername = await User.findOne({ username }).lean();
+    if (existedUsername && !existedUsername._id.equals(_id))
+      return res.status(400).send({ message: 'Tên người dùng đã tồn tại' });
 
-		await User.updateOne({ _id }, { $set: data });
+    await User.updateOne({ _id }, { $set: data });
 
-		const updatedUser = await User.findById(_id).select('-password -saved').lean();
+    const updatedUser = await User.findById(_id).select('-password -saved').lean();
 
-		const user = {
-			_id: updatedUser._id,
-			name: updatedUser.name,
-			username: updatedUser.username,
-			avatar: updatedUser.avatar,
-		};
+    const user = {
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      username: updatedUser.username,
+      avatar: updatedUser.avatar,
+    };
 
-		await Post.updateMany({ authorId: _id }, { $set: { author: user } });
-		await Comment.updateMany({ userId: _id }, { $set: { user } });
+    await Post.updateMany({ authorId: _id }, { $set: { author: user } });
+    await Comment.updateMany({ userId: _id }, { $set: { user } });
 
-		res.send(updatedUser);
-	} catch (error) {
-		res.status(500).send(error);
-	}
+    res.send(updatedUser);
+  } catch (error) {
+    res.status(500).send(error);
+  }
 }
 
 async function changePassword(req, res) {
-	try {
-		const { userId, currentPassword, newPassword } = req.body;
-		const user = req.user;
+  try {
+    const { userId, currentPassword, newPassword } = req.body;
+    const user = req.user;
 
-		// Check password validity
-		const validPassword = await bcrypt.compare(currentPassword, user.password);
-		if (!validPassword)
-			return res.status(400).send({ message: 'Mật khẩu hiện tại không chính xác' });
+    // Check password validity
+    const validPassword = await bcrypt.compare(currentPassword, user.password);
+    if (!validPassword)
+      return res.status(400).send({ message: 'Mật khẩu hiện tại không chính xác' });
 
-		// Hash password
-		const hashedPassword = await hashPassword(newPassword);
+    // Hash password
+    const hashedPassword = await hashPassword(newPassword);
 
-		await User.updateOne({ _id: userId }, { $set: { password: hashedPassword } });
-		res.sendStatus(200);
-	} catch (error) {
-		res.status(500).send(error);
-	}
+    await User.updateOne({ _id: userId }, { $set: { password: hashedPassword } });
+    res.sendStatus(200);
+  } catch (error) {
+    res.status(500).send(error);
+  }
 }
 
 async function loginUser(user, password, res) {
-	try {
-		if (user.type === 'email') {
-			const validPassword = await bcrypt.compare(password, user.password);
-			if (!validPassword) return res.status(400).send({ message: 'Mật khẩu không chính xác' });
-		}
+  try {
+    if (user.type === 'email') {
+      const validPassword = await bcrypt.compare(password, user.password);
+      if (!validPassword) return res.status(400).send({ message: 'Mật khẩu không chính xác' });
+    }
 
-		const loggedInUser = await User.findById(user._id).select('-password -saved').lean();
+    const loggedInUser = await User.findById(user._id).select('-password -saved').lean();
 
-		const token = generateAccessToken({ _id: loggedInUser._id });
+    const token = generateAccessToken({ _id: loggedInUser._id });
 
-		res.send({ user: loggedInUser, token });
-	} catch (error) {
-		res.status(500).send(error);
-	}
+    res.send({ user: loggedInUser, token });
+  } catch (error) {
+    res.status(500).send(error);
+  }
 }
 
 async function registerUser(user, res) {
-	try {
-		const hashedPassword = await hashPassword(user.password);
+  try {
+    const hashedPassword = await hashPassword(user.password);
 
-		const newUser = new User({ ...user, password: hashedPassword });
-		await newUser.save();
+    const newUser = new User({ ...user, password: hashedPassword });
+    await newUser.save();
 
-		res.sendStatus(200);
-	} catch (error) {
-		res.status(500).send(error);
-	}
+    res.sendStatus(200);
+  } catch (error) {
+    res.status(500).send(error);
+  }
 }
 
 const authCtrl = {
-	register,
-	login,
-	googleLogin,
-	getCurrentUser,
-	updateProfile,
-	changePassword,
+  register,
+  login,
+  googleLogin,
+  getCurrentUser,
+  updateProfile,
+  changePassword,
 };
 
 export default authCtrl;
