@@ -30,7 +30,6 @@ const io = new Server(server, {
 });
 
 io.on('connection', socketServer);
-
 export { io };
 
 // Routes

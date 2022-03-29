@@ -29,7 +29,7 @@ async function getBySlug(req, res) {
     const { postSlug } = req.params;
 
     const post = await Post.findOne({ slug: postSlug }).lean();
-    if (!post) return res.status(404).send({ message: 'Bài viết không tồn tại' });
+    if (!post) return res.status(404).send({ message: 'Post not found' });
 
     const commentCount = await Comment.countDocuments({ postId: post._id });
 
@@ -45,10 +45,10 @@ async function getForEdit(req, res) {
     const user = req.user;
 
     const post = await Post.findById(postId).lean();
-    if (!post) return res.status(404).send({ message: 'bài viết không tồn tại' });
+    if (!post) return res.status(404).send({ message: 'Post not found' });
 
     if (user.role !== 'admin' && !post.authorId.equals(user._id))
-      return res.status(403).send({ message: 'Bạn không có quyền chỉnh sửa bài viết này' });
+      return res.status(403).send({ message: 'You are not allowed to edit this post' });
 
     res.send(post);
   } catch (error) {
@@ -102,7 +102,6 @@ async function create(req, res) {
 
     res.send(savedPost?._doc);
   } catch (error) {
-    console.log('~ error', error);
     res.status(500).send(error);
   }
 }
@@ -114,10 +113,10 @@ async function update(req, res) {
     const user = req.user;
 
     const post = await Post.findById(postId).lean();
-    if (!post) return res.status(404).send({ message: 'Bài viết không tồn tại' });
+    if (!post) return res.status(404).send({ message: 'Post not found' });
 
     if (user.role !== 'admin' && !post.authorId.equals(user._id))
-      return res.status(403).send('Bạn không có quyền chỉnh sửa bài viết này');
+      return res.status(403).send('You are not allowed to edit this post');
 
     const updatedPost = await Post.findByIdAndUpdate(
       postId,
@@ -137,10 +136,10 @@ async function remove(req, res) {
     const user = req.user;
 
     const post = await Post.findById(postId).lean();
-    if (!post) return res.status(404).send({ message: 'Bài viết không tồn tại' });
+    if (!post) return res.status(404).send({ message: 'Post not found' });
 
     if (user.role !== 'admin' && !post.authorId.equals(user._id))
-      return res.status(403).send('Bạn không có quyền xóa bài viết này');
+      return res.status(403).send('You are not allowed to delete this post');
 
     await Post.deleteOne({ _id: postId });
     await Comment.deleteMany({ postId });
@@ -158,10 +157,9 @@ async function like(req, res) {
     const { _id: userId } = req.user;
 
     const post = await Post.findById(postId);
-    if (!post) return res.status(404).send({ message: 'Bài viết không tồn tại' });
+    if (!post) return res.status(404).send({ message: 'Post not found' });
 
     const isLiked = post.likes.some((id) => id.equals(userId));
-
     const update = isLiked ? { $pull: { likes: userId } } : { $push: { likes: userId } };
 
     const updatedPost = await Post.findByIdAndUpdate(postId, update, {
@@ -180,10 +178,10 @@ async function save(req, res) {
     const user = req.user;
 
     const post = await Post.findById(postId).lean();
-    if (!post) return res.status(404).send({ message: 'Bài viết không tồn tại' });
+    if (!post) return res.status(404).send({ message: 'Post not found' });
 
     if (user.saved.includes(postId)) {
-      return res.status(400).send({ message: 'Bài viết đã được lưu' });
+      return res.status(400).send({ message: 'Post is saved' });
     }
 
     await User.updateOne({ _id: user._id }, { $push: { saved: postId } });
@@ -200,10 +198,10 @@ async function unSave(req, res) {
     const user = req.user;
 
     const post = await Post.findById(postId).lean();
-    if (!post) return res.status(404).send({ message: 'Bài viết không tồn tại' });
+    if (!post) return res.status(404).send({ message: 'Post not found' });
 
     const indexOfPostId = user.saved.findIndex((id) => id === postId);
-    if (indexOfPostId < 0) return res.status(400).send({ message: 'Bài viết chưa được lưu' });
+    if (indexOfPostId < 0) return res.status(400).send({ message: 'Post have not saved yet' });
 
     const savedPosts = user?.saved;
     savedPosts.splice(indexOfPostId, 1);

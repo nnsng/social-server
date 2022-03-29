@@ -11,7 +11,7 @@ async function login(req, res) {
     const { email, password } = req.body;
 
     const existedUser = await User.findOne({ email });
-    if (!existedUser) return res.status(400).send({ message: 'Email chưa được đăng ký' });
+    if (!existedUser) return res.status(400).send({ message: 'Email have not registered yet' });
 
     loginUser(existedUser, password, res);
   } catch (error) {
@@ -31,7 +31,7 @@ async function register(req, res) {
     };
 
     const existedUser = await User.findOne({ email: userParams.email });
-    if (existedUser) return res.status(400).send({ message: 'Email đã tồn tại' });
+    if (existedUser) return res.status(400).send({ message: 'Email is exist' });
 
     registerUser(userParams, res);
   } catch (error) {
@@ -94,7 +94,7 @@ async function updateProfile(req, res) {
 
     const existedUsername = await User.findOne({ username }).lean();
     if (existedUsername && !existedUsername._id.equals(_id))
-      return res.status(400).send({ message: 'Tên người dùng đã tồn tại' });
+      return res.status(400).send({ message: 'Username is exist' });
 
     await User.updateOne({ _id }, { $set: data });
 
@@ -123,8 +123,7 @@ async function changePassword(req, res) {
 
     // Check password validity
     const validPassword = await bcrypt.compare(currentPassword, user.password);
-    if (!validPassword)
-      return res.status(400).send({ message: 'Mật khẩu hiện tại không chính xác' });
+    if (!validPassword) return res.status(400).send({ message: 'Password is not correct' });
 
     // Hash password
     const hashedPassword = await hashPassword(newPassword);
@@ -140,7 +139,7 @@ async function loginUser(user, password, res) {
   try {
     if (user.type === 'email') {
       const validPassword = await bcrypt.compare(password, user.password);
-      if (!validPassword) return res.status(400).send({ message: 'Mật khẩu không chính xác' });
+      if (!validPassword) return res.status(400).send({ message: 'Password is not correct' });
     }
 
     const loggedInUser = await User.findById(user._id).select('-password -saved').lean();

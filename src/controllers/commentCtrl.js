@@ -23,7 +23,7 @@ async function create(req, res) {
     const { _id, name, avatar } = req.user;
 
     const post = await Post.findById(postId).lean();
-    if (!post) return res.status(404).send({ message: 'Bài viết không tồn tại' });
+    if (!post) return res.status(404).send({ message: 'Post not found' });
 
     const newComment = new Comment({
       ...formData,
@@ -51,10 +51,10 @@ async function remove(req, res) {
     const user = req.user;
 
     const comment = await Comment.findById(commentId).lean();
-    if (!comment) return res.status(404).send({ message: 'Bình luận không tồn tại' });
+    if (!comment) return res.status(404).send({ message: 'Comment not found' });
 
     if (user.role !== 'admin' && !comment.userId.equals(user._id))
-      return res.status(403).send('Bạn không có quyền xóa bình luận này');
+      return res.status(403).send('You are not allowed to delete this comment');
 
     await Comment.deleteOne({ _id: commentId });
 
@@ -72,7 +72,7 @@ async function like(req, res) {
     const { _id: userId } = req.user;
 
     const comment = await Comment.findById(commentId).lean();
-    if (!comment) return res.status(404).send({ message: 'Bình luận không tồn tại' });
+    if (!comment) return res.status(404).send({ message: 'Comment not found' });
 
     const isLiked = comment.likes.some((id) => id.equals(userId));
 
