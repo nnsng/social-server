@@ -8,8 +8,8 @@ async function getAll(req, res) {
     const params = req.query;
 
     const getFilter = ({ keyword, username }) => {
-      if (keyword && username) return { 'keyword.value': keyword, 'author.username': username };
-      if (keyword) return { 'keyword.value': keyword };
+      if (keyword && username) return { 'keywords.value': keyword, 'author.username': username };
+      if (keyword) return { 'keywords.value': keyword };
       if (username) return { 'author.username': username };
 
       return {};

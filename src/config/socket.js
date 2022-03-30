@@ -8,6 +8,6 @@ export function socketServer(socket) {
   });
 
   socket.on('disconnect', () => {
-    console.log(socket.id + ' disconnected');
+    // console.log(socket.id + ' disconnected');
   });
 }

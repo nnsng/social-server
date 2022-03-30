@@ -1,15 +1,14 @@
 import mongoose from 'mongoose';
 
-export function connectToDatabase(uri) {
-  mongoose.connect(
-    uri,
-    {
+export async function connectToDatabase(uri) {
+  try {
+    await mongoose.connect(uri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-    },
-    (error) => {
-      if (error) throw error;
-      console.log('Connected to MongoDB');
-    }
-  );
+    });
+    console.log('Connected to MongoDB');
+  } catch (error) {
+    console.log('Failed to connect to MongoDB');
+    throw error;
+  }
 }
