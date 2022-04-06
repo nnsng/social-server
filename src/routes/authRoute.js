@@ -12,6 +12,8 @@ router.post('/google-login', authCtrl.googleLogin);
 
 router.post('/active', authCtrl.active);
 
+router.post('/refresh-token', authCtrl.refreshToken);
+
 router.get('/me', auth, authCtrl.getCurrentUser);
 
 router.post('/update-profile', auth, authCtrl.updateProfile);
