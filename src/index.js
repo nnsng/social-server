@@ -1,5 +1,4 @@
 import cors from 'cors';
-import dotenv from 'dotenv';
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -11,8 +10,7 @@ import adminRoute from './routes/adminRoute.js';
 import authRoute from './routes/authRoute.js';
 import commentRoute from './routes/commentRoute.js';
 import postRoute from './routes/postRoute.js';
-
-dotenv.config();
+import { env, variables } from './utils/env.js';
 
 const app = express();
 
@@ -39,11 +37,11 @@ app.use('/api/comments', auth, commentRoute);
 app.use('/api/admin', checkAdmin, adminRoute);
 
 // Database
-const URI = process.env.MONGODB_URI;
+const URI = env(variables.mongoUri);
 connectToDatabase(URI);
 
 // Server listening
-const PORT = process.env.PORT || 4000;
+const PORT = env(variables.port) || 4000;
 server.listen(PORT, () => {
   console.log('Server is running on port', PORT);
 });
