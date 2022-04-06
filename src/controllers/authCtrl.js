@@ -1,10 +1,15 @@
 import bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
+import jwt from 'jsonwebtoken';
+import sendMail from '../config/sendMail.js';
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import User from '../models/User.js';
 import { hashPassword } from '../utils/common.js';
-import { generateAccessToken } from '../utils/generateToken.js';
+import { env, variables } from '../utils/env.js';
+import { generateAccessToken, generateActiveToken } from '../utils/generateToken.js';
+
+const clientUrl = env(variables.clientUrl);
 
 async function login(req, res) {
   try {
@@ -43,7 +48,7 @@ async function googleLogin(req, res) {
   try {
     const { idToken } = req.body;
 
-    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientId = env(variables.googleClientId);
     const client = new OAuth2Client(clientId);
 
     const ticket = await client.verifyIdToken({
@@ -68,6 +73,36 @@ async function googleLogin(req, res) {
 
       registerUser(newUser, res);
     }
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
+async function active(req, res) {
+  try {
+    const { activeToken } = req.body;
+
+    const { _id } = jwt.verify(activeToken, env(variables.activeTokenSecret));
+
+    if (!_id) return res.status(400).send({ message: 'Invalid authentication.' });
+
+    const user = await User.findById(_id).lean();
+    if (!user) return res.status(400).send({ message: 'User not found' });
+    if (user.active) return res.status(400).send({ message: 'User is already active.' });
+
+    await User.updateOne({ _id }, { $set: { active: true } });
+    const activatedUser = await User.findById(_id).select('-password -saved').lean();
+
+    const token = generateActiveToken({ _id });
+
+    res.send({ user: activatedUser, token });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
+async function refreshToken(req, res) {
+  try {
   } catch (error) {
     res.status(500).send(error);
   }
@@ -143,6 +178,8 @@ async function loginUser(user, password, res) {
     }
 
     const loggedInUser = await User.findById(user._id).select('-password -saved').lean();
+    if (!loggedInUser.active)
+      return res.status(400).send({ message: 'Please active your account' });
 
     const token = generateAccessToken({ _id: loggedInUser._id });
 
@@ -159,8 +196,13 @@ async function registerUser(user, res) {
     const newUser = new User({ ...user, password: hashedPassword });
     await newUser.save();
 
+    const activeToken = generateActiveToken({ _id: newUser._id });
+
+    await sendMail(newUser.email, `${clientUrl}/active/${activeToken}`);
+
     res.sendStatus(200);
   } catch (error) {
+    console.log(error);
     res.status(500).send(error);
   }
 }
@@ -169,6 +211,7 @@ const authCtrl = {
   register,
   login,
   googleLogin,
+  active,
   getCurrentUser,
   updateProfile,
   changePassword,

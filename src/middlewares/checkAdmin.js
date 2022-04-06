@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import { env, variables } from '../utils/env.js';
 
 async function checkAdmin(req, res, next) {
   try {
@@ -8,7 +9,7 @@ async function checkAdmin(req, res, next) {
 
     const token = headerAuthorization.split(' ')[1];
 
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    const decoded = jwt.verify(token, env(variables.accessTokenSecret));
     if (!decoded) return res.status(403).send({ message: 'Invalid Authentication.' });
 
     const user = await User.findOne({ _id: decoded._id }).select('-password').lean();

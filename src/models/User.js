@@ -39,6 +39,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: 'local',
     },
+    active: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
