@@ -17,7 +17,6 @@ export const variables = {
 
   activeTokenSecret: 'ACTIVE_TOKEN_SECRET',
   accessTokenSecret: 'ACCESS_TOKEN_SECRET',
-  refreshTokenSecret: 'REFRESH_TOKEN_SECRET',
 
   googleClientId: 'GOOGLE_CLIENT_ID',
   googleClientSecret: 'GOOGLE_CLIENT_SECRET',
