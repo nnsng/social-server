@@ -6,9 +6,8 @@ import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import User from '../models/User.js';
 import { hashPassword } from '../utils/common.js';
-import { TOKEN } from '../utils/constants.js';
 import { env, variables } from '../utils/env.js';
-import generateToken from '../utils/generateToken.js';
+import { generateAccessToken, generateActiveToken } from '../utils/generateToken.js';
 
 const clientUrl = env(variables.clientUrl);
 
@@ -94,27 +93,9 @@ async function active(req, res) {
     await User.updateOne({ _id }, { $set: { active: true } });
     const activatedUser = await User.findById(_id).select('-password -saved').lean();
 
-    const token = generateToken(TOKEN.ACTIVE, { _id });
+    const accessToken = generateAccessToken({ _id });
 
-    res.send({ user: activatedUser, token });
-  } catch (error) {
-    res.status(500).send(error);
-  }
-}
-
-async function refreshToken(req, res) {
-  const { token: refreshToken } = req.body;
-
-  try {
-    const { _id } = jwt.verify(refreshToken, env(variables.refreshTokenSecret));
-    if (!_id) return res.status(400).send({ message: 'Invalid authentication.' });
-
-    const user = await User.findById(_id).lean();
-    if (!user) return res.status(400).send({ message: 'User not found' });
-
-    const accessToken = generateToken(TOKEN.ACCESS, { _id });
-
-    res.send({ accessToken });
+    res.send({ user: activatedUser, token: accessToken });
   } catch (error) {
     res.status(500).send(error);
   }
@@ -193,10 +174,9 @@ async function loginUser(user, password, res) {
     if (!loggedInUser.active)
       return res.status(400).send({ message: 'Please active your account' });
 
-    const accessToken = generateToken(TOKEN.ACCESS, { _id: loggedInUser._id });
-    const refreshToken = generateToken(TOKEN.REFRESH, { _id: loggedInUser._id });
+    const accessToken = generateAccessToken({ _id: loggedInUser._id });
 
-    res.send({ user: loggedInUser, accessToken, refreshToken });
+    res.send({ user: loggedInUser, token: accessToken });
   } catch (error) {
     res.status(500).send(error);
   }
@@ -209,7 +189,7 @@ async function registerUser(user, res) {
     const newUser = new User({ ...user, password: hashedPassword });
     await newUser.save();
 
-    const activeToken = generateToken(TOKEN.ACTIVE, { _id: newUser._id });
+    const activeToken = generateActiveToken({ _id: newUser._id });
 
     await sendMail(newUser.email, `${clientUrl}/active?token=${activeToken}`);
 
@@ -225,7 +205,6 @@ const authCtrl = {
   login,
   googleLogin,
   active,
-  refreshToken,
   getCurrentUser,
   updateProfile,
   changePassword,
