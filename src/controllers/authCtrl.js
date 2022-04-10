@@ -16,7 +16,12 @@ async function login(req, res) {
     const { email, password } = req.body;
 
     const existedUser = await User.findOne({ email });
-    if (!existedUser) return res.status(400).send({ message: 'Email have not registered yet' });
+    if (!existedUser) {
+      return res.status(400).send({
+        name: 'emailNotRegister',
+        message: 'Email have not registered yet.',
+      });
+    }
 
     loginUser(existedUser, password, res);
   } catch (error) {
@@ -36,7 +41,12 @@ async function register(req, res) {
     };
 
     const existedUser = await User.findOne({ email: userParams.email });
-    if (existedUser) return res.status(400).send({ message: 'Email is exist' });
+    if (existedUser) {
+      return res.status(400).send({
+        name: 'emailExist',
+        message: 'Email already exist.',
+      });
+    }
 
     registerUser(userParams, res);
   } catch (error) {
@@ -84,11 +94,26 @@ async function active(req, res) {
 
     const { _id } = jwt.verify(activeToken, env(variables.activeTokenSecret));
 
-    if (!_id) return res.status(400).send({ message: 'Invalid authentication.' });
+    if (!_id) {
+      return res.status(401).send({
+        name: 'invalidAuthen',
+        message: 'Invalid authentication.',
+      });
+    }
 
     const user = await User.findById(_id).lean();
-    if (!user) return res.status(400).send({ message: 'User not found' });
-    if (user.active) return res.status(400).send({ message: 'User is already active.' });
+    if (!user) {
+      return res.status(404).send({
+        name: 'userNotFound',
+        message: 'User not found.',
+      });
+    }
+    if (user.active) {
+      return res.status(400).send({
+        name: 'accountActive',
+        message: 'Account is already active.',
+      });
+    }
 
     await User.updateOne({ _id }, { $set: { active: true } });
     const activatedUser = await User.findById(_id).select('-password -saved').lean();
@@ -106,7 +131,12 @@ async function getCurrentUser(req, res) {
     const { _id } = req.user;
 
     const user = await User.findById(_id).select('-password -saved').lean();
-    if (!user) return res.status(404).send({ message: 'User not found' });
+    if (!user) {
+      return res.status(404).send({
+        name: 'userNotFound',
+        message: 'User not found',
+      });
+    }
 
     res.send(user);
   } catch (error) {
@@ -121,8 +151,12 @@ async function updateProfile(req, res) {
     const { _id } = req.user;
 
     const existedUsername = await User.findOne({ username }).lean();
-    if (existedUsername && !existedUsername._id.equals(_id))
-      return res.status(400).send({ message: 'Username is exist' });
+    if (existedUsername && !existedUsername._id.equals(_id)) {
+      return res.status(400).send({
+        name: 'usernameExist',
+        message: 'Username already exist.',
+      });
+    }
 
     await User.updateOne({ _id }, { $set: data });
 
@@ -151,7 +185,12 @@ async function changePassword(req, res) {
 
     // Check password validity
     const validPassword = await bcrypt.compare(currentPassword, user.password);
-    if (!validPassword) return res.status(400).send({ message: 'Password is not correct' });
+    if (!validPassword) {
+      return res.status(400).send({
+        name: 'passwordNotCorrect',
+        message: 'Password is not correct.',
+      });
+    }
 
     // Hash password
     const hashedPassword = await hashPassword(newPassword);
@@ -167,12 +206,21 @@ async function loginUser(user, password, res) {
   try {
     if (user.type === 'email') {
       const validPassword = await bcrypt.compare(password, user.password);
-      if (!validPassword) return res.status(400).send({ message: 'Password is not correct' });
+      if (!validPassword) {
+        return res.status(400).send({
+          name: 'passwordNotCorrect',
+          message: 'Password is not correct.',
+        });
+      }
     }
 
     const loggedInUser = await User.findById(user._id).select('-password -saved').lean();
-    if (!loggedInUser.active)
-      return res.status(400).send({ message: 'Please active your account' });
+    if (!loggedInUser.active) {
+      return res.status(400).send({
+        name: 'activeAccount',
+        message: 'Please active your account.',
+      });
+    }
 
     const accessToken = generateAccessToken({ _id: loggedInUser._id });
 

@@ -7,7 +7,12 @@ async function setRole(req, res) {
     const { role } = req.body;
 
     const user = await User.findById(userId).lean();
-    if (!user) return res.status(404).send({ message: 'User not found' });
+    if (!user) {
+      return res.status(404).send({
+        name: 'userNotFound',
+        message: 'User not found.',
+      });
+    }
 
     await User.updateOne({ _id: userId }, { $set: { role } });
 

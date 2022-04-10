@@ -15,7 +15,7 @@ router.post('/:postId/like', postCtrl.like);
 
 router.post('/:postId/save', postCtrl.save);
 
-router.post('/:postId/unsave', postCtrl.unSave);
+router.post('/:postId/unsave', postCtrl.unsave);
 
 router.route('/:postId').get(postCtrl.getForEdit).patch(postCtrl.update).delete(postCtrl.remove);
 

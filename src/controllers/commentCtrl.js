@@ -23,7 +23,12 @@ async function create(req, res) {
     const { _id, name, avatar } = req.user;
 
     const post = await Post.findById(postId).lean();
-    if (!post) return res.status(404).send({ message: 'Post not found' });
+    if (!post) {
+      return res.status(404).send({
+        name: 'postNotFound',
+        message: 'Post not found.',
+      });
+    }
 
     const newComment = new Comment({
       ...formData,
@@ -51,10 +56,19 @@ async function remove(req, res) {
     const user = req.user;
 
     const comment = await Comment.findById(commentId).lean();
-    if (!comment) return res.status(404).send({ message: 'Comment not found' });
+    if (!comment) {
+      return res.status(404).send({
+        name: 'commentNotFound',
+        message: 'Comment not found.',
+      });
+    }
 
-    if (user.role !== 'admin' && !comment.userId.equals(user._id))
-      return res.status(403).send('You are not allowed to delete this comment');
+    if (user.role !== 'admin' && !comment.userId.equals(user._id)) {
+      return res.status(403).send({
+        name: 'notAllowedDeleteComment',
+        message: 'You are not allowed to delete this comment.',
+      });
+    }
 
     await Comment.deleteOne({ _id: commentId });
 
@@ -72,7 +86,12 @@ async function like(req, res) {
     const { _id: userId } = req.user;
 
     const comment = await Comment.findById(commentId).lean();
-    if (!comment) return res.status(404).send({ message: 'Comment not found' });
+    if (!comment) {
+      return res.status(404).send({
+        name: 'commentNotFound',
+        message: 'Comment not found.',
+      });
+    }
 
     const isLiked = comment.likes.some((id) => id.equals(userId));
 
