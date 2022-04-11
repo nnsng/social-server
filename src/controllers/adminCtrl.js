@@ -24,7 +24,7 @@ async function setRole(req, res) {
 
 async function updateDb(req, res) {
   try {
-    await User.updateMany({}, { $set: { active: true } });
+    await User.updateMany({}, { $unset: { config: {} } });
 
     res.sendStatus(200);
   } catch (error) {
