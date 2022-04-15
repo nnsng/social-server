@@ -1,12 +1,21 @@
 export function socketServer(socket) {
-  socket.on('joinRoom', ({ id }) => {
-    socket.join(id);
+  // user open website
+  socket.on('joinSocial', ({ userId }) => {
+    socket.join(userId);
+  });
+  socket.on('leaveSocial', ({ userId }) => {
+    socket.leave(userId);
   });
 
-  socket.on('outRoom', ({ id }) => {
-    socket.leave(id);
+  // user open a post
+  socket.on('joinPost', ({ postId }) => {
+    socket.join(postId);
+  });
+  socket.on('leavePost', ({ postId }) => {
+    socket.leave(postId);
   });
 
+  // user disconnect
   socket.on('disconnect', () => {
     // console.log(socket.id + ' disconnected');
   });

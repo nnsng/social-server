@@ -1,4 +1,3 @@
-import sendEmail from '../config/sendMail.js';
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import User from '../models/User.js';
@@ -203,6 +202,12 @@ async function like(req, res) {
     const updatedPost = await Post.findByIdAndUpdate(postId, update, {
       new: true,
     }).lean();
+
+    // io.to(`${userId}`).emit('listenNoti', {
+    //   notification: {
+    //     message: `${req.user.name} liked your post.`,
+    //   },
+    // });
 
     res.send(updatedPost);
   } catch (error) {

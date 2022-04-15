@@ -24,7 +24,8 @@ async function setRole(req, res) {
 
 async function updateDb(req, res) {
   try {
-    await User.updateMany({}, { $unset: { config: {} } });
+    // await User.updateMany({}, { $rename: { name: 'fullName' } });
+    await User.deleteMany({ role: 'user' });
 
     res.sendStatus(200);
   } catch (error) {

@@ -31,16 +31,17 @@ async function login(req, res) {
 
 async function register(req, res) {
   try {
-    const { email, password, firstName, lastName } = req.body;
+    const { email, password, fullName, username } = req.body;
 
-    const userParams = {
+    const userInfo = {
       email,
       password,
-      name: `${firstName} ${lastName}`,
+      fullName,
+      username,
       type: 'local',
     };
 
-    const existedUser = await User.findOne({ email: userParams.email });
+    const existedUser = await User.findOne({ email });
     if (existedUser) {
       return res.status(400).send({
         name: 'emailExist',
@@ -48,7 +49,7 @@ async function register(req, res) {
       });
     }
 
-    registerUser(userParams, res);
+    registerUser(userInfo, res);
   } catch (error) {
     res.status(500).send(error);
   }
@@ -77,7 +78,7 @@ async function googleLogin(req, res) {
         name,
         email,
         avatar: picture,
-        password: '123456',
+        password: email.split['@'][0],
         type: 'google',
       };
 
