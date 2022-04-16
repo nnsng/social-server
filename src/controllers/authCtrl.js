@@ -165,9 +165,10 @@ async function updateProfile(req, res) {
 
     const user = {
       _id: updatedUser._id,
-      name: updatedUser.name,
+      fullName: updatedUser.fullName,
       username: updatedUser.username,
       avatar: updatedUser.avatar,
+      bio: updatedUser.bio,
     };
 
     await Post.updateMany({ authorId: _id }, { $set: { author: user } });

@@ -13,10 +13,6 @@ const postSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    description: {
-      type: String,
-      default: '',
-    },
     thumbnail: {
       type: String,
       default: '',
@@ -27,9 +23,10 @@ const postSchema = new mongoose.Schema(
     },
     author: {
       _id: mongoose.Schema.Types.ObjectId,
-      name: String,
-      avatar: String,
+      fullName: String,
       username: String,
+      avatar: String,
+      bio: String,
     },
     keywords: {
       type: [{ name: String, value: String }],

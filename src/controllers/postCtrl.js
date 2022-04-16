@@ -101,14 +101,15 @@ async function getSavedList(req, res) {
 async function create(req, res) {
   try {
     const formData = req.body;
-    const { _id, name, avatar } = req.user;
+    const { _id, fullName, avatar, username } = req.user;
 
     const newPost = new Post({
       ...formData,
       author: {
         _id,
-        name,
+        fullName,
         avatar,
+        username,
       },
     });
 

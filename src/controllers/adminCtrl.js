@@ -1,5 +1,6 @@
 import Post from '../models/Post.js';
 import User from '../models/User.js';
+import Comment from '../models/Comment.js';
 
 async function setRole(req, res) {
   try {
@@ -25,7 +26,7 @@ async function setRole(req, res) {
 async function updateDb(req, res) {
   try {
     // await User.updateMany({}, { $rename: { name: 'fullName' } });
-    await User.deleteMany({ role: 'user' });
+    await Comment.deleteMany({});
 
     res.sendStatus(200);
   } catch (error) {

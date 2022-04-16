@@ -16,8 +16,9 @@ const commentSchema = new mongoose.Schema(
     },
     user: {
       _id: mongoose.Schema.Types.ObjectId,
-      name: String,
+      fullName: String,
       avatar: String,
+      username: String,
     },
     likes: {
       type: [mongoose.Schema.Types.ObjectId],
