@@ -23,7 +23,7 @@ const postSchema = new mongoose.Schema(
     },
     author: {
       _id: mongoose.Schema.Types.ObjectId,
-      fullName: String,
+      name: String,
       username: String,
       avatar: String,
       bio: String,

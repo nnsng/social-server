@@ -5,7 +5,7 @@ import sendMail from '../config/sendMail.js';
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import User from '../models/User.js';
-import { hashPassword } from '../utils/common.js';
+import { hashPassword, randomNumber } from '../utils/common.js';
 import { env, variables } from '../utils/env.js';
 import { generateAccessToken, generateActiveToken } from '../utils/generateToken.js';
 
@@ -31,12 +31,12 @@ async function login(req, res) {
 
 async function register(req, res) {
   try {
-    const { email, password, fullName, username } = req.body;
+    const { email, password, name, username } = req.body;
 
     const userInfo = {
       email,
       password,
-      fullName,
+      name,
       username,
       type: 'local',
     };
@@ -74,12 +74,23 @@ async function googleLogin(req, res) {
     if (existedUser) {
       loginUser(existedUser, '', res);
     } else {
+      const initUsername = name.replace(/\s+/g, '-');
+      let username = initUsername;
+      let isExist = true;
+      while (isExist) {
+        const existedUser = await User.findOne({ username }).lean();
+        if (existedUser) username = initUsername + randomNumber();
+        else isExist = false;
+      }
+
       const newUser = {
         name,
         email,
+        username,
         avatar: picture,
-        password: email.split['@'][0],
+        password: email.split('@')[0],
         type: 'google',
+        active: true,
       };
 
       registerUser(newUser, res);
@@ -151,8 +162,8 @@ async function updateProfile(req, res) {
     const { username } = data;
     const { _id } = req.user;
 
-    const existedUsername = await User.findOne({ username }).lean();
-    if (existedUsername && !existedUsername._id.equals(_id)) {
+    const existedUser = await User.findOne({ username }).lean();
+    if (existedUser && !existedUser._id.equals(_id)) {
       return res.status(400).send({
         name: 'usernameExist',
         message: 'Username already exist.',
@@ -163,16 +174,8 @@ async function updateProfile(req, res) {
 
     const updatedUser = await User.findById(_id).select('-password -saved').lean();
 
-    const user = {
-      _id: updatedUser._id,
-      fullName: updatedUser.fullName,
-      username: updatedUser.username,
-      avatar: updatedUser.avatar,
-      bio: updatedUser.bio,
-    };
-
-    await Post.updateMany({ authorId: _id }, { $set: { author: user } });
-    await Comment.updateMany({ userId: _id }, { $set: { user } });
+    await Post.updateMany({ authorId: _id }, { $set: { author: updatedUser } });
+    await Comment.updateMany({ userId: _id }, { $set: { user: updatedUser } });
 
     res.send(updatedUser);
   } catch (error) {
@@ -240,6 +243,11 @@ async function registerUser(user, res) {
     await newUser.save();
 
     const activeToken = generateActiveToken({ _id: newUser._id });
+
+    if (user.type === 'google') {
+      const googleUser = await User.findById(newUser._id).select('-password -saved').lean();
+      res.send({ user: googleUser, token: activeToken });
+    }
 
     await sendMail(newUser.email, `${clientUrl}/active?token=${activeToken}`);
 

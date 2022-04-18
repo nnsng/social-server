@@ -20,7 +20,7 @@ async function create(req, res) {
   try {
     const formData = req.body;
     const { postId } = formData;
-    const { _id, fullName, avatar, username } = req.user;
+    const { _id, name, avatar, username } = req.user;
 
     const post = await Post.findById(postId).lean();
     if (!post) {
@@ -34,7 +34,7 @@ async function create(req, res) {
       ...formData,
       user: {
         _id,
-        fullName,
+        name,
         avatar,
         username,
       },
