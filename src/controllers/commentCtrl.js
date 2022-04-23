@@ -41,6 +41,9 @@ async function create(req, res) {
     });
     await newComment.save();
 
+    const commentCount = await Comment.countDocuments({ postId });
+    await Post.findByIdAndUpdate(postId, { $set: { 'statistics.commentCount': commentCount } });
+
     io.to(`${postId}`).emit('createComment', {
       comment: newComment._doc,
     });
@@ -72,6 +75,9 @@ async function remove(req, res) {
     }
 
     await Comment.deleteOne({ _id: commentId });
+
+    const commentCount = await Comment.countDocuments({ postId: comment.postId });
+    await Post.findByIdAndUpdate(postId, { $set: { 'statistics.commentCount': commentCount } });
 
     io.to(`${comment.postId}`).emit('removeComment', { id: comment._id });
 

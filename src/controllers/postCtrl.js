@@ -8,8 +8,8 @@ async function getAll(req, res) {
     const params = req.query;
 
     const getFilter = ({ keyword, username }) => {
-      if (keyword && username) return { 'keywords.value': keyword, 'author.username': username };
-      if (keyword) return { 'keywords.value': keyword };
+      if (keyword && username) return { keywords: keyword, 'author.username': username };
+      if (keyword) return { keywords: keyword };
       if (username) return { 'author.username': username };
 
       return {};
@@ -26,9 +26,9 @@ async function getAll(req, res) {
 
 async function getBySlug(req, res) {
   try {
-    const { postSlug } = req.params;
+    const { slug } = req.params;
 
-    const post = await Post.findOne({ slug: postSlug }).lean();
+    const post = await Post.findOne({ slug }).lean();
     if (!post) {
       return res.status(404).send({
         name: 'postNotFound',
@@ -37,8 +37,17 @@ async function getBySlug(req, res) {
     }
 
     const commentCount = await Comment.countDocuments({ postId: post._id });
+    const postResponse = {
+      ...post,
+      statistics: {
+        ...post.statistics,
+        commentCount,
+      },
+    };
 
-    res.send({ ...post, commentCount });
+    await Post.findByIdAndUpdate(post._id, { $inc: { 'statistics.viewCount': 1 } });
+
+    res.send(postResponse);
   } catch (error) {
     res.status(500).send(error);
   }
@@ -198,7 +207,9 @@ async function like(req, res) {
     }
 
     const isLiked = post.likes.some((id) => id.equals(userId));
-    const update = isLiked ? { $pull: { likes: userId } } : { $push: { likes: userId } };
+    const update = isLiked
+      ? { $pull: { likes: userId }, $inc: { 'statistics.likeCount': -1 } }
+      : { $push: { likes: userId }, $inc: { 'statistics.likeCount': 1 } };
 
     const updatedPost = await Post.findByIdAndUpdate(postId, update, {
       new: true,

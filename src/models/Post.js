@@ -29,16 +29,26 @@ const postSchema = new mongoose.Schema(
       bio: String,
     },
     keywords: {
-      type: [{ name: String, value: String }],
+      type: [String],
       default: [],
     },
     likes: {
       type: [mongoose.Schema.Types.ObjectId],
       default: [],
     },
-    commentCount: {
-      type: Number,
-      default: 0,
+    statistics: {
+      likeCount: {
+        type: Number,
+        default: 0,
+      },
+      commentCount: {
+        type: Number,
+        default: 0,
+      },
+      viewCount: {
+        type: Number,
+        default: 0,
+      },
     },
     slug: {
       type: String,

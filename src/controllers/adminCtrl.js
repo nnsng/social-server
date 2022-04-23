@@ -26,7 +26,16 @@ async function setRole(req, res) {
 async function updateDb(req, res) {
   try {
     // await User.updateMany({}, { $rename: { name: 'fullName' } });
-    await Comment.deleteMany({});
+    await Post.updateMany(
+      {},
+      {
+        $set: {
+          'statistics.likeCount': 0,
+          'statistics.commentCount': 0,
+          'statistics.viewCount': 0,
+        },
+      }
+    );
 
     res.sendStatus(200);
   } catch (error) {

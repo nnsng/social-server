@@ -9,7 +9,7 @@ router.get('/my', postCtrl.getMyPostList);
 
 router.get('/saved', postCtrl.getSavedList);
 
-router.get('/detail/:postSlug', postCtrl.getBySlug);
+router.get('/detail/:slug', postCtrl.getBySlug);
 
 router.post('/:postId/like', postCtrl.like);
 
