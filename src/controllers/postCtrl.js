@@ -268,18 +268,14 @@ async function unsave(req, res) {
       });
     }
 
-    const indexOfPostId = user.saved.findIndex((id) => id === postId);
-    if (indexOfPostId < 0) {
+    if (!user.saved.includes(postId)) {
       return res.status(400).send({
         name: 'postNotSaved',
         message: 'Post have not saved yet.',
       });
     }
 
-    const savedPosts = user?.saved;
-    savedPosts.splice(indexOfPostId, 1);
-
-    await User.updateOne({ _id: user._id }, { $set: { saved: savedPosts } }, { new: true });
+    await User.updateOne({ _id: user._id }, { $pull: { saved: postId } });
 
     res.sendStatus(200);
   } catch (error) {
