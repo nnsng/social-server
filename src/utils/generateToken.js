@@ -6,5 +6,5 @@ export function generateActiveToken(payload) {
 }
 
 export function generateAccessToken(payload) {
-  return jwt.sign(payload, env(variables.accessTokenSecret));
+  return jwt.sign(payload, env(variables.accessTokenSecret), { expiresIn: '7d' });
 }

@@ -1,14 +1,12 @@
+import { io } from '../index.js';
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
-import { io } from '../index.js';
 
 async function getByPostId(req, res) {
   try {
     const { postId } = req.query;
 
-    const commentList = await Comment.find({ postId }).sort({
-      createdAt: 'desc',
-    });
+    const commentList = await Comment.find({ postId }).sort({ createdAt: 'desc' }).lean();
 
     res.send(commentList);
   } catch (error) {

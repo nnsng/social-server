@@ -215,12 +215,6 @@ async function like(req, res) {
       new: true,
     }).lean();
 
-    // io.to(`${userId}`).emit('listenNoti', {
-    //   notification: {
-    //     message: `${req.user.name} liked your post.`,
-    //   },
-    // });
-
     res.send(updatedPost);
   } catch (error) {
     res.status(500).send(error);

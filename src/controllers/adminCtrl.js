@@ -1,6 +1,5 @@
 import Post from '../models/Post.js';
 import User from '../models/User.js';
-import Comment from '../models/Comment.js';
 
 async function setRole(req, res) {
   try {
@@ -25,17 +24,7 @@ async function setRole(req, res) {
 
 async function updateDb(req, res) {
   try {
-    // await User.updateMany({}, { $rename: { name: 'fullName' } });
-    await Post.updateMany(
-      {},
-      {
-        $set: {
-          'statistics.likeCount': 0,
-          'statistics.commentCount': 0,
-          'statistics.viewCount': 0,
-        },
-      }
-    );
+    await Post.deleteMany({});
 
     res.sendStatus(200);
   } catch (error) {
