@@ -24,7 +24,7 @@ async function setRole(req, res) {
 
 async function updateDb(req, res) {
   try {
-    await Post.deleteMany({});
+    // await Post.deleteMany({});
 
     res.sendStatus(200);
   } catch (error) {

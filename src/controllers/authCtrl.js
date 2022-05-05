@@ -207,6 +207,28 @@ async function changePassword(req, res) {
   }
 }
 
+async function forgotPassword(req, res) {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email }).lean();
+    if (!user) {
+      return res.status(400).send({
+        name: 'emailNotRegister',
+        message: 'Email have not registered yet.',
+      });
+    }
+
+    const activeToken = generateActiveToken({ _id: user._id });
+
+    await sendMail(email, `${clientUrl}/password?token=${activeToken}`, 'password');
+
+    res.sendStatus(200);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
 async function loginUser(user, password, res) {
   try {
     if (user.type === 'email') {
@@ -241,15 +263,16 @@ async function registerUser(user, res) {
 
     const newUser = new User({ ...user, password: hashedPassword });
     await newUser.save();
+    const { _id, email } = newUser;
 
-    const activeToken = generateActiveToken({ _id: newUser._id });
+    const activeToken = generateActiveToken({ _id });
 
     if (user.type === 'google') {
-      const googleUser = await User.findById(newUser._id).select('-password -saved').lean();
+      const googleUser = await User.findById(_id).select('-password -saved').lean();
       res.send({ user: googleUser, token: activeToken });
     }
 
-    await sendMail(newUser.email, `${clientUrl}/active?token=${activeToken}`);
+    await sendMail(email, `${clientUrl}/active?token=${activeToken}`, 'active');
 
     res.sendStatus(200);
   } catch (error) {
@@ -265,6 +288,7 @@ const authCtrl = {
   getCurrentUser,
   updateProfile,
   changePassword,
+  forgotPassword,
 };
 
 export default authCtrl;
