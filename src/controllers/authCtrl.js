@@ -229,6 +229,28 @@ async function forgotPassword(req, res) {
   }
 }
 
+async function resetPassword(req, res) {
+  try {
+    const { userId, newPassword } = req.body;
+
+    const user = await User.findById(userId).lean();
+    if (!user) {
+      return res.status(404).send({
+        name: 'userNotFound',
+        message: 'User not found',
+      });
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+
+    await User.updateOne({ _id: userId }, { $set: { password: hashedPassword } });
+
+    res.sendStatus(200);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
 async function loginUser(user, password, res) {
   try {
     if (user.type === 'email') {
@@ -289,6 +311,7 @@ const authCtrl = {
   updateProfile,
   changePassword,
   forgotPassword,
+  resetPassword,
 };
 
 export default authCtrl;
