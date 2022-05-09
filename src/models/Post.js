@@ -28,7 +28,7 @@ const postSchema = new mongoose.Schema(
       avatar: String,
       bio: String,
     },
-    keywords: {
+    hashtags: {
       type: [String],
       default: [],
     },

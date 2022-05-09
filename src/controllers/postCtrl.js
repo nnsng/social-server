@@ -4,19 +4,24 @@ import User from '../models/User.js';
 import { errorMessages } from '../utils/constants.js';
 import { getPostResponse } from '../utils/mongoose.js';
 
+const generateFilter = ({ search, username, hashtag }) => {
+  if (search)
+    return {
+      slug: {
+        $regex: new RegExp(search),
+        $options: 'i',
+      },
+    };
+  if (username) return { 'author.username': username };
+  if (hashtag) return { hashtags: hashtag };
+  return {};
+};
+
 async function getAll(req, res) {
   try {
-    const params = req.query;
+    const { search, username, hashtag, ...params } = req.query;
 
-    const getFilter = ({ keyword, username }) => {
-      if (keyword && username) return { keywords: keyword, 'author.username': username };
-      if (keyword) return { keywords: keyword };
-      if (username) return { 'author.username': username };
-
-      return {};
-    };
-
-    const filter = getFilter(params);
+    const filter = generateFilter({ search, username, hashtag });
     const postResponse = await getPostResponse(filter, params);
 
     res.send(postResponse);
@@ -80,7 +85,7 @@ async function getForEdit(req, res) {
   }
 }
 
-async function getMyPostList(req, res) {
+async function getMyList(req, res) {
   try {
     const params = req.query;
     const user = req.user;
@@ -94,7 +99,7 @@ async function getMyPostList(req, res) {
   }
 }
 
-async function getSavedList(req, res) {
+async function getSaved(req, res) {
   try {
     const params = req.query;
     const { saved } = req.user;
@@ -280,14 +285,11 @@ async function unsave(req, res) {
 
 async function search(req, res) {
   try {
-    const { q: searchTerm } = req.query;
+    const { searchFor, searchTerm } = req.query;
 
-    const postList = await Post.find({
-      slug: {
-        $regex: new RegExp(searchTerm),
-        $options: 'i',
-      },
-    }).sort({ createdAt: -1 });
+    const filter = generateFilter({ [searchFor]: searchTerm });
+
+    const postList = await Post.find(filter).sort({ createdAt: -1 }).lean();
 
     return res.send(postList);
   } catch (error) {
@@ -299,8 +301,8 @@ const postCtrl = {
   getAll,
   getBySlug,
   getForEdit,
-  getMyPostList,
-  getSavedList,
+  getMyList,
+  getSaved,
   create,
   update,
   remove,
