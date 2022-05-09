@@ -231,9 +231,17 @@ async function forgotPassword(req, res) {
 
 async function resetPassword(req, res) {
   try {
-    const { userId, newPassword } = req.body;
+    const { token, newPassword } = req.body;
 
-    const user = await User.findById(userId).lean();
+    const decoded = jwt.verify(token, env(variables.activeTokenSecret));
+    if (!decoded) {
+      return res.status(401).send({
+        name: 'invalidAuthen',
+        message: 'Invalid Authentication.',
+      });
+    }
+
+    const user = await User.findById(decoded._id).lean();
     if (!user) {
       return res.status(404).send({
         name: 'userNotFound',
@@ -243,7 +251,7 @@ async function resetPassword(req, res) {
 
     const hashedPassword = await hashPassword(newPassword);
 
-    await User.updateOne({ _id: userId }, { $set: { password: hashedPassword } });
+    await User.updateOne({ _id: user._id }, { $set: { password: hashedPassword } });
 
     res.sendStatus(200);
   } catch (error) {
@@ -253,7 +261,7 @@ async function resetPassword(req, res) {
 
 async function loginUser(user, password, res) {
   try {
-    if (user.type === 'email') {
+    if (user.type === 'local') {
       const validPassword = await bcrypt.compare(password, user.password);
       if (!validPassword) {
         return res.status(400).send({
