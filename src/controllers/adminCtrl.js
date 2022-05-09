@@ -1,5 +1,6 @@
-import Post from '../models/Post.js';
 import User from '../models/User.js';
+import { hashPassword } from '../utils/common.js';
+import { errorMessages } from '../utils/constants.js';
 
 async function setRole(req, res) {
   try {
@@ -10,7 +11,7 @@ async function setRole(req, res) {
     if (!user) {
       return res.status(404).send({
         name: 'userNotFound',
-        message: 'User not found.',
+        message: errorMessages['userNotFound'],
       });
     }
 
@@ -24,7 +25,11 @@ async function setRole(req, res) {
 
 async function updateDb(req, res) {
   try {
-    await Post.deleteMany({});
+    const hashedPassword = await hashPassword('123456');
+    await User.updateOne(
+      { _id: '625ae349245dd092cf14c49b' },
+      { $set: { password: hashedPassword } }
+    );
 
     res.sendStatus(200);
   } catch (error) {

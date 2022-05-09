@@ -1,6 +1,7 @@
 import { io } from '../index.js';
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
+import { errorMessages } from '../utils/constants.js';
 
 async function getByPostId(req, res) {
   try {
@@ -24,7 +25,7 @@ async function create(req, res) {
     if (!post) {
       return res.status(404).send({
         name: 'postNotFound',
-        message: 'Post not found.',
+        message: errorMessages['postNotFound'],
       });
     }
 
@@ -61,14 +62,14 @@ async function remove(req, res) {
     if (!comment) {
       return res.status(404).send({
         name: 'commentNotFound',
-        message: 'Comment not found.',
+        message: errorMessages['commentNotFound'],
       });
     }
 
     if (user.role !== 'admin' && !comment.userId.equals(user._id)) {
       return res.status(403).send({
         name: 'notAllowedDeleteComment',
-        message: 'You are not allowed to delete this comment.',
+        message: errorMessages['notAllowedDeleteComment'],
       });
     }
 
@@ -94,7 +95,7 @@ async function like(req, res) {
     if (!comment) {
       return res.status(404).send({
         name: 'commentNotFound',
-        message: 'Comment not found.',
+        message: errorMessages['commentNotFound'],
       });
     }
 

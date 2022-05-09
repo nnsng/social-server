@@ -18,4 +18,8 @@ router.post('/update-profile', auth, authCtrl.updateProfile);
 
 router.post('/change-password', auth, authCtrl.changePassword);
 
+router.post('/forgot-password', authCtrl.forgotPassword);
+
+router.post('/reset-password', authCtrl.resetPassword);
+
 export default router;

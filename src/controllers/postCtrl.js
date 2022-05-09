@@ -1,6 +1,7 @@
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import User from '../models/User.js';
+import { errorMessages } from '../utils/constants.js';
 import { getPostResponse } from '../utils/mongoose.js';
 
 async function getAll(req, res) {
@@ -32,7 +33,7 @@ async function getBySlug(req, res) {
     if (!post) {
       return res.status(404).send({
         name: 'postNotFound',
-        message: 'Post not found.',
+        message: errorMessages['postNotFound'],
       });
     }
 
@@ -62,14 +63,14 @@ async function getForEdit(req, res) {
     if (!post) {
       return res.status(404).send({
         name: 'postNotFound',
-        message: 'Post not found.',
+        message: errorMessages['postNotFound'],
       });
     }
 
     if (user.role !== 'admin' && !post.authorId.equals(user._id)) {
       return res.status(403).send({
         name: 'notAllowedEditPost',
-        message: 'You are not allowed to edit this post.',
+        message: errorMessages['notAllowedEditPost'],
       });
     }
 
@@ -140,14 +141,14 @@ async function update(req, res) {
     if (!post) {
       return res.status(404).send({
         name: 'postNotFound',
-        message: 'Post not found.',
+        message: errorMessages['postNotFound'],
       });
     }
 
     if (user.role !== 'admin' && !post.authorId.equals(user._id)) {
       return res.status(403).send({
         name: 'notAllowedEditPost',
-        message: 'You are not allowed to edit this post.',
+        message: errorMessages['notAllowedEditPost'],
       });
     }
 
@@ -172,14 +173,14 @@ async function remove(req, res) {
     if (!post) {
       return res.status(404).send({
         name: 'postNotFound',
-        message: 'Post not found.',
+        message: errorMessages['postNotFound'],
       });
     }
 
     if (user.role !== 'admin' && !post.authorId.equals(user._id)) {
       return res.status(403).send({
         name: 'notAllowedDeletePost',
-        message: 'You are not allowed to delete this post.',
+        message: errorMessages['notAllowedDeletePost'],
       });
     }
 
@@ -202,7 +203,7 @@ async function like(req, res) {
     if (!post) {
       return res.status(404).send({
         name: 'postNotFound',
-        message: 'Post not found.',
+        message: errorMessages['postNotFound'],
       });
     }
 
@@ -230,14 +231,14 @@ async function save(req, res) {
     if (!post) {
       return res.status(404).send({
         name: 'postNotFound',
-        message: 'Post not found.',
+        message: errorMessages['postNotFound'],
       });
     }
 
     if (user.saved.includes(postId)) {
       return res.status(400).send({
         name: 'postSaved',
-        message: 'Post is saved.',
+        message: errorMessages['postSaved'],
       });
     }
 
@@ -258,14 +259,14 @@ async function unsave(req, res) {
     if (!post) {
       return res.status(404).send({
         name: 'postNotFound',
-        message: 'Post not found.',
+        message: errorMessages['postNotFound'],
       });
     }
 
     if (!user.saved.includes(postId)) {
       return res.status(400).send({
         name: 'postNotSaved',
-        message: 'Post have not saved yet.',
+        message: errorMessages['postNotSaved'],
       });
     }
 
