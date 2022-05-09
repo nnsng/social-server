@@ -308,7 +308,7 @@ async function registerUser(user, res) {
     if (user.type === 'google') {
       const accessToken = generateAccessToken({ _id });
       const googleUser = await User.findById(_id).select('-password -saved').lean();
-      res.send({ user: googleUser, token: accessToken, activeToken });
+      return res.send({ user: googleUser, token: accessToken, activeToken });
     }
 
     await sendMail(email, `${clientUrl}/active?token=${activeToken}`, sendMailTypes.activeAccount);
