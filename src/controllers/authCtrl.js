@@ -1,11 +1,12 @@
 import bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
-import sendMail from '../config/sendMail.js';
+import sendMail, { sendMailTypes } from '../config/sendMail.js';
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import User from '../models/User.js';
 import { hashPassword, randomNumber } from '../utils/common.js';
+import { errorMessages } from '../utils/constants.js';
 import { env, variables } from '../utils/env.js';
 import { generateAccessToken, generateActiveToken } from '../utils/generateToken.js';
 
@@ -19,7 +20,7 @@ async function login(req, res) {
     if (!existedUser) {
       return res.status(400).send({
         name: 'emailNotRegister',
-        message: 'Email have not registered yet.',
+        message: errorMessages['emailNotRegister'],
       });
     }
 
@@ -45,7 +46,7 @@ async function register(req, res) {
     if (existedUser) {
       return res.status(400).send({
         name: 'emailExist',
-        message: 'Email already exist.',
+        message: errorMessages['emailExist'],
       });
     }
 
@@ -74,13 +75,16 @@ async function googleLogin(req, res) {
     if (existedUser) {
       loginUser(existedUser, '', res);
     } else {
-      const initUsername = name.replace(/\s+/g, '-');
+      const initUsername = name.trim().replace(/\s+/g, '-');
       let username = initUsername;
       let isExist = true;
       while (isExist) {
         const existedUser = await User.findOne({ username }).lean();
-        if (existedUser) username = initUsername + randomNumber();
-        else isExist = false;
+        if (existedUser) {
+          username = initUsername + randomNumber();
+        } else {
+          isExist = false;
+        }
       }
 
       const newUser = {
@@ -88,9 +92,9 @@ async function googleLogin(req, res) {
         email,
         username,
         avatar: picture,
-        password: email.split('@')[0],
+        password: '',
         type: 'google',
-        active: true,
+        active: false,
       };
 
       registerUser(newUser, res);
@@ -109,7 +113,7 @@ async function active(req, res) {
     if (!_id) {
       return res.status(401).send({
         name: 'invalidAuthen',
-        message: 'Invalid authentication.',
+        message: errorMessages['invalidAuthen'],
       });
     }
 
@@ -117,13 +121,13 @@ async function active(req, res) {
     if (!user) {
       return res.status(404).send({
         name: 'userNotFound',
-        message: 'User not found.',
+        message: errorMessages['userNotFound'],
       });
     }
     if (user.active) {
       return res.status(400).send({
         name: 'accountActive',
-        message: 'Account is already active.',
+        message: errorMessages['accountActive'],
       });
     }
 
@@ -146,7 +150,7 @@ async function getCurrentUser(req, res) {
     if (!user) {
       return res.status(404).send({
         name: 'userNotFound',
-        message: 'User not found',
+        message: errorMessages['userNotFound'],
       });
     }
 
@@ -166,7 +170,7 @@ async function updateProfile(req, res) {
     if (existedUser && !existedUser._id.equals(_id)) {
       return res.status(400).send({
         name: 'usernameExist',
-        message: 'Username already exist.',
+        message: errorMessages['usernameExist'],
       });
     }
 
@@ -193,7 +197,7 @@ async function changePassword(req, res) {
     if (!validPassword) {
       return res.status(400).send({
         name: 'passwordNotCorrect',
-        message: 'Password is not correct.',
+        message: errorMessages['passwordNotCorrect'],
       });
     }
 
@@ -215,13 +219,17 @@ async function forgotPassword(req, res) {
     if (!user) {
       return res.status(400).send({
         name: 'emailNotRegister',
-        message: 'Email have not registered yet.',
+        message: errorMessages['emailNotRegister'],
       });
     }
 
     const activeToken = generateActiveToken({ _id: user._id });
 
-    await sendMail(email, `${clientUrl}/password?token=${activeToken}`, 'password');
+    await sendMail(
+      email,
+      `${clientUrl}/reset-password?token=${activeToken}`,
+      sendMailTypes.resetPassword
+    );
 
     res.sendStatus(200);
   } catch (error) {
@@ -237,7 +245,7 @@ async function resetPassword(req, res) {
     if (!decoded) {
       return res.status(401).send({
         name: 'invalidAuthen',
-        message: 'Invalid Authentication.',
+        message: errorMessages['Invalid Authentication.'],
       });
     }
 
@@ -245,13 +253,13 @@ async function resetPassword(req, res) {
     if (!user) {
       return res.status(404).send({
         name: 'userNotFound',
-        message: 'User not found',
+        message: errorMessages['userNotFound'],
       });
     }
 
     const hashedPassword = await hashPassword(newPassword);
 
-    await User.updateOne({ _id: user._id }, { $set: { password: hashedPassword } });
+    await User.updateOne({ _id: user._id }, { $set: { password: hashedPassword, active: true } });
 
     res.sendStatus(200);
   } catch (error) {
@@ -261,12 +269,12 @@ async function resetPassword(req, res) {
 
 async function loginUser(user, password, res) {
   try {
-    if (user.type === 'local') {
+    if (password.length !== 0) {
       const validPassword = await bcrypt.compare(password, user.password);
       if (!validPassword) {
         return res.status(400).send({
           name: 'passwordNotCorrect',
-          message: 'Password is not correct.',
+          message: errorMessages['passwordNotCorrect'],
         });
       }
     }
@@ -275,7 +283,7 @@ async function loginUser(user, password, res) {
     if (!loggedInUser.active) {
       return res.status(400).send({
         name: 'activeAccount',
-        message: 'Please active your account.',
+        message: errorMessages['activeAccount'],
       });
     }
 
@@ -298,11 +306,12 @@ async function registerUser(user, res) {
     const activeToken = generateActiveToken({ _id });
 
     if (user.type === 'google') {
+      const accessToken = generateAccessToken({ _id });
       const googleUser = await User.findById(_id).select('-password -saved').lean();
-      res.send({ user: googleUser, token: activeToken });
+      res.send({ user: googleUser, token: accessToken, activeToken });
     }
 
-    await sendMail(email, `${clientUrl}/active?token=${activeToken}`, 'active');
+    await sendMail(email, `${clientUrl}/active?token=${activeToken}`, sendMailTypes.activeAccount);
 
     res.sendStatus(200);
   } catch (error) {

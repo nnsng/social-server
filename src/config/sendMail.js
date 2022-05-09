@@ -2,14 +2,19 @@ import { OAuth2Client } from 'google-auth-library';
 import nodemailer from 'nodemailer';
 import { env, variables } from '../utils/env.js';
 
-const OAUTH_PLAYGROUND = 'https://developers.google.com/oauthplayground';
-
-const clientId = env(variables.googleClientId);
-const clientSecret = env(variables.googleClientSecret);
-const refreshToken = env(variables.googleRefreshToken);
-const senderMail = env(variables.senderEmailAddress);
+export const sendMailTypes = {
+  activeAccount: 'activeAccount',
+  resetPassword: 'resetPassword',
+};
 
 async function sendMail(mailto, url, type) {
+  const OAUTH_PLAYGROUND = 'https://developers.google.com/oauthplayground';
+
+  const clientId = env(variables.googleClientId);
+  const clientSecret = env(variables.googleClientSecret);
+  const refreshToken = env(variables.googleRefreshToken);
+  const senderMail = env(variables.senderEmailAddress);
+
   try {
     const oAuth2Client = new OAuth2Client(clientId, clientSecret, OAUTH_PLAYGROUND);
 
@@ -30,8 +35,8 @@ async function sendMail(mailto, url, type) {
     });
 
     const subjects = {
-      active: 'Active account',
-      password: 'Reset password',
+      activeAccount: 'Active account',
+      resetPassword: 'Reset password',
     };
 
     const mailOptions = {
@@ -49,7 +54,7 @@ async function sendMail(mailto, url, type) {
 }
 
 function generateHtml(url, type) {
-  const isActive = type === 'active';
+  const isActive = type === sendMailTypes.activeAccount;
 
   const title = isActive ? 'Welcome to 1social' : 'Reset password';
   const description = isActive

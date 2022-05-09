@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import { errorMessages } from '../utils/constants.js';
 import { env, variables } from '../utils/env.js';
 
 async function checkAdmin(req, res, next) {
@@ -8,7 +9,7 @@ async function checkAdmin(req, res, next) {
     if (!headerAuthorization) {
       return res.status(403).send({
         name: 'accessDenied',
-        message: 'Access Denied.',
+        message: errorMessages['accessDenied'],
       });
     }
 
@@ -18,7 +19,7 @@ async function checkAdmin(req, res, next) {
     if (!decoded) {
       return res.status(403).send({
         name: 'invalidAuth',
-        message: 'Invalid Authentication.',
+        message: errorMessages['invalidAuth'],
       });
     }
 
@@ -26,14 +27,14 @@ async function checkAdmin(req, res, next) {
     if (!user) {
       return res.status(400).send({
         name: 'userNotFound',
-        message: 'User not found.',
+        message: errorMessages['userNotFound'],
       });
     }
 
     if (user.role !== 'admin') {
       return res.status(403).send({
         name: 'accessDenied',
-        message: 'Access Denied.',
+        message: errorMessages['accessDenied'],
       });
     }
 
@@ -41,7 +42,7 @@ async function checkAdmin(req, res, next) {
 
     next();
   } catch (error) {
-    res.status(401).send({ name: 'invalidToken', message: 'Invalid token' });
+    res.status(401).send({ name: 'invalidToken', message: errorMessages['invalidToken'] });
   }
 }
 

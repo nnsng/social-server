@@ -1,6 +1,6 @@
-import Post from '../models/Post.js';
 import User from '../models/User.js';
 import { hashPassword } from '../utils/common.js';
+import { errorMessages } from '../utils/constants.js';
 
 async function setRole(req, res) {
   try {
@@ -11,7 +11,7 @@ async function setRole(req, res) {
     if (!user) {
       return res.status(404).send({
         name: 'userNotFound',
-        message: 'User not found.',
+        message: errorMessages['userNotFound'],
       });
     }
 

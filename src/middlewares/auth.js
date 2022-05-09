@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import { errorMessages } from '../utils/constants.js';
 import { env, variables } from '../utils/env.js';
 
 async function auth(req, res, next) {
@@ -8,7 +9,7 @@ async function auth(req, res, next) {
     if (!headerAuthorization) {
       return res.status(401).send({
         name: 'accessDenied',
-        message: 'Access Denied.',
+        message: errorMessages['accessDenied'],
       });
     }
 
@@ -18,7 +19,7 @@ async function auth(req, res, next) {
     if (!decoded) {
       return res.status(401).send({
         name: 'invalidAuthen',
-        message: 'Invalid Authentication.',
+        message: errorMessages['invalidAuthen'],
       });
     }
 
@@ -26,7 +27,7 @@ async function auth(req, res, next) {
     if (!user) {
       return res.status(404).send({
         name: 'userNotFound',
-        message: 'User not found.',
+        message: errorMessages['userNotFound'],
       });
     }
 
