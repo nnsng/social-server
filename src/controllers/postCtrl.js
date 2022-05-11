@@ -116,7 +116,7 @@ async function getSaved(req, res) {
 async function create(req, res) {
   try {
     const formData = req.body;
-    const { _id, name, avatar, username } = req.user;
+    const { _id, name, avatar, username, bio } = req.user;
 
     const newPost = new Post({
       ...formData,
@@ -125,6 +125,7 @@ async function create(req, res) {
         name,
         avatar,
         username,
+        bio,
       },
     });
 

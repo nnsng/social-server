@@ -1,6 +1,7 @@
+import Post from '../models/Post.js';
 import User from '../models/User.js';
-import { hashPassword } from '../utils/common.js';
 import { errorMessages } from '../utils/constants.js';
+import postData from '../__mocks__/postData.js';
 
 async function setRole(req, res) {
   try {
@@ -25,16 +26,22 @@ async function setRole(req, res) {
 
 async function updateDb(req, res) {
   try {
-    const hashedPassword = await hashPassword('123456');
-    await User.updateOne(
-      { _id: '625ae349245dd092cf14c49b' },
-      { $set: { password: hashedPassword } }
-    );
-
+    await generatePosts(postData);
     res.sendStatus(200);
   } catch (error) {
     res.status(500).send(error);
   }
+}
+
+async function generatePosts(postList) {
+  for (const post of postList) {
+    const newPost = new Post(post);
+    await newPost.save();
+  }
+}
+
+async function deletePosts(filter) {
+  await Post.deleteMany(filter);
 }
 
 const adminCtrl = {

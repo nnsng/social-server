@@ -75,7 +75,7 @@ async function googleLogin(req, res) {
     if (existedUser) {
       loginUser(existedUser, '', res);
     } else {
-      const initUsername = name.trim().replace(/\s+/g, '-');
+      const initUsername = name.toLowerCase().trim().replace(/\s+/g, '-');
       let username = initUsername;
       let isExist = true;
       while (isExist) {

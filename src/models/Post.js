@@ -24,8 +24,8 @@ const postSchema = new mongoose.Schema(
     author: {
       _id: mongoose.Schema.Types.ObjectId,
       name: String,
-      username: String,
       avatar: String,
+      username: String,
       bio: String,
     },
     hashtags: {
