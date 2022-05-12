@@ -2,24 +2,24 @@ import express from 'express';
 import authCtrl from '../controllers/authCtrl.js';
 import auth from '../middlewares/auth.js';
 
-const router = express.Router();
+const authRouter = express.Router();
 
-router.post('/register', authCtrl.register);
+authRouter.post('/register', authCtrl.register);
 
-router.post('/login', authCtrl.login);
+authRouter.post('/login', authCtrl.login);
 
-router.post('/google-login', authCtrl.googleLogin);
+authRouter.post('/google-login', authCtrl.googleLogin);
 
-router.post('/active', authCtrl.active);
+authRouter.post('/active', authCtrl.active);
 
-router.get('/me', auth, authCtrl.getCurrentUser);
+authRouter.get('/me', auth, authCtrl.getCurrentUser);
 
-router.post('/update-profile', auth, authCtrl.updateProfile);
+authRouter.post('/update-profile', auth, authCtrl.updateProfile);
 
-router.post('/change-password', auth, authCtrl.changePassword);
+authRouter.post('/change-password', auth, authCtrl.changePassword);
 
-router.post('/forgot-password', authCtrl.forgotPassword);
+authRouter.post('/forgot-password', authCtrl.forgotPassword);
 
-router.post('/reset-password', authCtrl.resetPassword);
+authRouter.post('/reset-password', authCtrl.resetPassword);
 
-export default router;
+export default authRouter;
