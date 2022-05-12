@@ -6,10 +6,11 @@ import { connectToDatabase } from './config/database.js';
 import { socketServer } from './config/socket.js';
 import auth from './middlewares/auth.js';
 import checkAdmin from './middlewares/checkAdmin.js';
-import adminRoute from './routes/adminRoute.js';
-import authRoute from './routes/authRoute.js';
-import commentRoute from './routes/commentRoute.js';
-import postRoute from './routes/postRoute.js';
+import adminRouter from './routes/adminRoute.js';
+import authRouter from './routes/authRoute.js';
+import commentRouter from './routes/commentRoute.js';
+import configRouter from './routes/configRoute.js';
+import postRouter from './routes/postRoute.js';
 import { env, variables } from './utils/env.js';
 
 const app = express();
@@ -31,10 +32,11 @@ io.on('connection', socketServer);
 export { io };
 
 // Routes
-app.use('/api/auth', authRoute);
-app.use('/api/posts', auth, postRoute);
-app.use('/api/comments', auth, commentRoute);
-app.use('/api/admin', checkAdmin, adminRoute);
+app.use('/api/auth', authRouter);
+app.use('/api/posts', auth, postRouter);
+app.use('/api/comments', auth, commentRouter);
+app.use('/api/config', auth, configRouter);
+app.use('/api/admin', checkAdmin, adminRouter);
 
 // Database
 const URI = env(variables.mongoUri);

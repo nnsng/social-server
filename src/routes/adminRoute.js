@@ -1,10 +1,10 @@
 import express from 'express';
 import adminCtrl from '../controllers/adminCtrl.js';
 
-const router = express.Router();
+const adminRouter = express.Router();
 
-router.post('/users/:userId/role', adminCtrl.setRole);
+adminRouter.post('/users/:userId/role', adminCtrl.setRole);
 
-router.get('/updateDb', adminCtrl.updateDb);
+adminRouter.get('/updateDb', adminCtrl.updateDb);
 
-export default router;
+export default adminRouter;

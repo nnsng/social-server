@@ -1,24 +1,28 @@
 import express from 'express';
 import postCtrl from '../controllers/postCtrl.js';
 
-const router = express.Router();
+const postRouter = express.Router();
 
-router.get('/search', postCtrl.search);
+postRouter.get('/search', postCtrl.search);
 
-router.get('/my', postCtrl.getMyList);
+postRouter.get('/my', postCtrl.getMyList);
 
-router.get('/saved', postCtrl.getSaved);
+postRouter.get('/saved', postCtrl.getSaved);
 
-router.get('/detail/:slug', postCtrl.getBySlug);
+postRouter.get('/detail/:slug', postCtrl.getBySlug);
 
-router.post('/:postId/like', postCtrl.like);
+postRouter.post('/:postId/like', postCtrl.like);
 
-router.post('/:postId/save', postCtrl.save);
+postRouter.post('/:postId/save', postCtrl.save);
 
-router.post('/:postId/unsave', postCtrl.unsave);
+postRouter.post('/:postId/unsave', postCtrl.unsave);
 
-router.route('/:postId').get(postCtrl.getForEdit).patch(postCtrl.update).delete(postCtrl.remove);
+postRouter
+  .route('/:postId')
+  .get(postCtrl.getForEdit)
+  .patch(postCtrl.update)
+  .delete(postCtrl.remove);
 
-router.route('/').get(postCtrl.getAll).post(postCtrl.create);
+postRouter.route('/').get(postCtrl.getAll).post(postCtrl.create);
 
-export default router;
+export default postRouter;
