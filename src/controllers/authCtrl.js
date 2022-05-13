@@ -133,6 +133,7 @@ async function changePassword(req, res) {
     // Check password validity
     const validPassword = await bcrypt.compare(currentPassword, user.password);
     if (!validPassword) {
+      return res.status(400).send(generateErrorObject('passwordNotCorrect'));
     }
 
     // Hash password
