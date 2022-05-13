@@ -2,12 +2,10 @@ import bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import sendMail, { sendMailTypes } from '../config/sendMail.js';
-import Comment from '../models/Comment.js';
-import Post from '../models/Post.js';
 import User from '../models/User.js';
 import { hashPassword, randomNumber } from '../utils/common.js';
-import { errorMessages } from '../utils/constants.js';
 import { env, variables } from '../utils/env.js';
+import { generateErrorObject } from '../utils/error.js';
 import { generateAccessToken, generateActiveToken } from '../utils/generateToken.js';
 
 const clientUrl = env(variables.clientUrl);
@@ -18,10 +16,7 @@ async function login(req, res) {
 
     const existedUser = await User.findOne({ email });
     if (!existedUser) {
-      return res.status(400).send({
-        name: 'emailNotRegister',
-        message: errorMessages['emailNotRegister'],
-      });
+      return res.status(400).send(generateErrorObject('emailNotRegister'));
     }
 
     loginUser(existedUser, password, res);
@@ -44,10 +39,7 @@ async function register(req, res) {
 
     const existedUser = await User.findOne({ email });
     if (existedUser) {
-      return res.status(400).send({
-        name: 'emailExist',
-        message: errorMessages['emailExist'],
-      });
+      return res.status(400).send(generateErrorObject('emailExist'));
     }
 
     registerUser(userInfo, res);
@@ -111,24 +103,15 @@ async function active(req, res) {
     const { _id } = jwt.verify(activeToken, env(variables.activeTokenSecret));
 
     if (!_id) {
-      return res.status(401).send({
-        name: 'invalidAuthen',
-        message: errorMessages['invalidAuthen'],
-      });
+      return res.status(401).send(generateErrorObject('invalidAuthen'));
     }
 
     const user = await User.findById(_id).lean();
     if (!user) {
-      return res.status(404).send({
-        name: 'userNotFound',
-        message: errorMessages['userNotFound'],
-      });
+      return res.status(404).send(generateErrorObject('userNotFound'));
     }
     if (user.active) {
-      return res.status(400).send({
-        name: 'accountActive',
-        message: errorMessages['accountActive'],
-      });
+      return res.status(400).send(generateErrorObject('accountActive'));
     }
 
     await User.updateOne({ _id }, { $set: { active: true } });
@@ -142,51 +125,6 @@ async function active(req, res) {
   }
 }
 
-async function getCurrentUser(req, res) {
-  try {
-    const { _id } = req.user;
-
-    const user = await User.findById(_id).select('-password -saved').lean();
-    if (!user) {
-      return res.status(404).send({
-        name: 'userNotFound',
-        message: errorMessages['userNotFound'],
-      });
-    }
-
-    res.send(user);
-  } catch (error) {
-    res.status(500).send(error);
-  }
-}
-
-async function updateProfile(req, res) {
-  try {
-    const data = req.body;
-    const { username } = data;
-    const { _id } = req.user;
-
-    const existedUser = await User.findOne({ username }).lean();
-    if (existedUser && !existedUser._id.equals(_id)) {
-      return res.status(400).send({
-        name: 'usernameExist',
-        message: errorMessages['usernameExist'],
-      });
-    }
-
-    await User.updateOne({ _id }, { $set: data });
-
-    const updatedUser = await User.findById(_id).select('-password -saved').lean();
-
-    await Post.updateMany({ authorId: _id }, { $set: { author: updatedUser } });
-    await Comment.updateMany({ userId: _id }, { $set: { user: updatedUser } });
-
-    res.send(updatedUser);
-  } catch (error) {
-    res.status(500).send(error);
-  }
-}
-
 async function changePassword(req, res) {
   try {
     const { userId, currentPassword, newPassword } = req.body;
@@ -195,10 +133,7 @@ async function changePassword(req, res) {
     // Check password validity
     const validPassword = await bcrypt.compare(currentPassword, user.password);
     if (!validPassword) {
-      return res.status(400).send({
-        name: 'passwordNotCorrect',
-        message: errorMessages['passwordNotCorrect'],
-      });
+      return res.status(400).send(generateErrorObject('passwordNotCorrect'));
     }
 
     // Hash password
@@ -217,10 +152,7 @@ async function forgotPassword(req, res) {
 
     const user = await User.findOne({ email }).lean();
     if (!user) {
-      return res.status(400).send({
-        name: 'emailNotRegister',
-        message: errorMessages['emailNotRegister'],
-      });
+      return res.status(400).send(generateErrorObject('emailNotRegister'));
     }
 
     const activeToken = generateActiveToken({ _id: user._id });
@@ -243,18 +175,12 @@ async function resetPassword(req, res) {
 
     const decoded = jwt.verify(token, env(variables.activeTokenSecret));
     if (!decoded) {
-      return res.status(401).send({
-        name: 'invalidAuthen',
-        message: errorMessages['Invalid Authentication.'],
-      });
+      return res.status(401).send(generateErrorObject('invalidAuthen'));
     }
 
     const user = await User.findById(decoded._id).lean();
     if (!user) {
-      return res.status(404).send({
-        name: 'userNotFound',
-        message: errorMessages['userNotFound'],
-      });
+      return res.status(404).send(generateErrorObject('userNotFound'));
     }
 
     const hashedPassword = await hashPassword(newPassword);
@@ -272,19 +198,13 @@ async function loginUser(user, password, res) {
     if (password.length !== 0) {
       const validPassword = await bcrypt.compare(password, user.password);
       if (!validPassword) {
-        return res.status(400).send({
-          name: 'passwordNotCorrect',
-          message: errorMessages['passwordNotCorrect'],
-        });
+        return res.status(400).send(generateErrorObject('passwordNotCorrect'));
       }
     }
 
     const loggedInUser = await User.findById(user._id).select('-password -saved').lean();
     if (!loggedInUser.active) {
-      return res.status(400).send({
-        name: 'activeAccount',
-        message: errorMessages['activeAccount'],
-      });
+      return res.status(400).send(generateErrorObject('activeAccount'));
     }
 
     const accessToken = generateAccessToken({ _id: loggedInUser._id });
@@ -324,8 +244,6 @@ const authCtrl = {
   login,
   googleLogin,
   active,
-  getCurrentUser,
-  updateProfile,
   changePassword,
   forgotPassword,
   resetPassword,

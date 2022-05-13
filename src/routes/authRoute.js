@@ -12,14 +12,10 @@ authRouter.post('/google-login', authCtrl.googleLogin);
 
 authRouter.post('/active', authCtrl.active);
 
-authRouter.get('/me', auth, authCtrl.getCurrentUser);
+authRouter.post('/password/change', auth, authCtrl.changePassword);
 
-authRouter.post('/update-profile', auth, authCtrl.updateProfile);
+authRouter.post('/password/forgot', authCtrl.forgotPassword);
 
-authRouter.post('/change-password', auth, authCtrl.changePassword);
-
-authRouter.post('/forgot-password', authCtrl.forgotPassword);
-
-authRouter.post('/reset-password', authCtrl.resetPassword);
+authRouter.post('/password/reset', authCtrl.resetPassword);
 
 export default authRouter;

@@ -1,7 +1,7 @@
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import User from '../models/User.js';
-import { errorMessages } from '../utils/constants.js';
+import { generateErrorObject } from '../utils/error.js';
 import { getPostResponse } from '../utils/mongoose.js';
 
 const generateFilter = ({ search, username, hashtag }) => {
@@ -36,10 +36,7 @@ async function getBySlug(req, res) {
 
     const post = await Post.findOne({ slug }).lean();
     if (!post) {
-      return res.status(404).send({
-        name: 'postNotFound',
-        message: errorMessages['postNotFound'],
-      });
+      return res.status(404).send(generateErrorObject('postNotFound'));
     }
 
     const commentCount = await Comment.countDocuments({ postId: post._id });
@@ -66,17 +63,11 @@ async function getForEdit(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).send({
-        name: 'postNotFound',
-        message: errorMessages['postNotFound'],
-      });
+      return res.status(404).send(generateErrorObject('postNotFound'));
     }
 
     if (user.role !== 'admin' && !post.authorId.equals(user._id)) {
-      return res.status(403).send({
-        name: 'notAllowedEditPost',
-        message: errorMessages['notAllowedEditPost'],
-      });
+      return res.status(403).send(generateErrorObject('notAllowedEditPost'));
     }
 
     res.send(post);
@@ -145,17 +136,11 @@ async function update(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).send({
-        name: 'postNotFound',
-        message: errorMessages['postNotFound'],
-      });
+      return res.status(404).send(generateErrorObject('postNotFound'));
     }
 
     if (user.role !== 'admin' && !post.authorId.equals(user._id)) {
-      return res.status(403).send({
-        name: 'notAllowedEditPost',
-        message: errorMessages['notAllowedEditPost'],
-      });
+      return res.status(403).send(generateErrorObject('notAllowedEditPost'));
     }
 
     const updatedPost = await Post.findByIdAndUpdate(
@@ -177,17 +162,11 @@ async function remove(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).send({
-        name: 'postNotFound',
-        message: errorMessages['postNotFound'],
-      });
+      return res.status(404).send(generateErrorObject('postNotFound'));
     }
 
     if (user.role !== 'admin' && !post.authorId.equals(user._id)) {
-      return res.status(403).send({
-        name: 'notAllowedDeletePost',
-        message: errorMessages['notAllowedDeletePost'],
-      });
+      return res.status(403).send(generateErrorObject('notAllowedDeletePost'));
     }
 
     await Post.deleteOne({ _id: postId });
@@ -207,10 +186,7 @@ async function like(req, res) {
 
     const post = await Post.findById(postId);
     if (!post) {
-      return res.status(404).send({
-        name: 'postNotFound',
-        message: errorMessages['postNotFound'],
-      });
+      return res.status(404).send(generateErrorObject('postNotFound'));
     }
 
     const isLiked = post.likes.some((id) => id.equals(userId));
@@ -235,17 +211,11 @@ async function save(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).send({
-        name: 'postNotFound',
-        message: errorMessages['postNotFound'],
-      });
+      return res.status(404).send(generateErrorObject('postNotFound'));
     }
 
     if (user.saved.includes(postId)) {
-      return res.status(400).send({
-        name: 'postSaved',
-        message: errorMessages['postSaved'],
-      });
+      return res.status(400).send(generateErrorObject('postSaved'));
     }
 
     await User.updateOne({ _id: user._id }, { $push: { saved: postId } });
@@ -263,17 +233,11 @@ async function unsave(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).send({
-        name: 'postNotFound',
-        message: errorMessages['postNotFound'],
-      });
+      return res.status(404).send(generateErrorObject('postNotFound'));
     }
 
     if (!user.saved.includes(postId)) {
-      return res.status(400).send({
-        name: 'postNotSaved',
-        message: errorMessages['postNotSaved'],
-      });
+      return res.status(400).send(generateErrorObject('postNotSaved'));
     }
 
     await User.updateOne({ _id: user._id }, { $pull: { saved: postId } });

@@ -1,4 +1,4 @@
-export const errorMessages = {
+const errorMessages = {
   // auth
   accessDenied: 'Access denied.',
   invalidToken: 'Invalid token.',
@@ -10,6 +10,9 @@ export const errorMessages = {
   accountActive: 'Account already active.',
   usernameExist: 'Username already exist.',
   passwordNotCorrect: 'Password not correct.',
+  cannotChangeEmail: 'Cannot change email.',
+  alreadyFollow: 'Already follow this user.',
+  notFollow: 'Have not follow this user yet.',
 
   // post / comment
   postSaved: 'Post already saved.',
@@ -20,3 +23,10 @@ export const errorMessages = {
   commentNotFound: 'Comment not found.',
   notAllowedDeleteComment: 'You are not allowed to delete this comment.',
 };
+
+export function generateErrorObject(name) {
+  return {
+    name,
+    message: errorMessages[name],
+  };
+}
