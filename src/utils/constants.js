@@ -11,6 +11,8 @@ export const errorMessages = {
   usernameExist: 'Username already exist.',
   passwordNotCorrect: 'Password not correct.',
   cannotChangeEmail: 'Cannot change email.',
+  alreadyFollow: 'Already follow this user.',
+  notFollow: 'Have not follow this user yet.',
 
   // post / comment
   postSaved: 'Post already saved.',

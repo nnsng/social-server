@@ -25,7 +25,9 @@ async function getUserInfo(req, res) {
   try {
     const { username } = req.params;
 
-    const user = await User.findOne({ username }).select('name avatar username bio').lean();
+    const user = await User.findOne({ username })
+      .select('name avatar username bio following followers')
+      .lean();
     if (!user) {
       return res.status(404).send({
         name: 'userNotFound',
@@ -72,10 +74,84 @@ async function updateProfile(req, res) {
   }
 }
 
+async function follow(req, res) {
+  try {
+    const currentUser = req.user;
+    const { userId } = req.body;
+
+    const user = await User.findById(userId).lean();
+    if (!user) {
+      return res.status(404).send({
+        name: 'userNotFound',
+        message: errorMessages['userNotFound'],
+      });
+    }
+
+    if (currentUser.following.includes(userId)) {
+      return res.status(400).send({
+        name: 'alreadyFollow',
+        message: errorMessages['alreadyFollow'],
+      });
+    }
+
+    await User.updateOne({ _id: currentUser._id }, { $push: { following: userId } });
+    const updatedCurrentUser = await User.findById(currentUser._id)
+      .select('-password -saved')
+      .lean();
+
+    await User.updateOne({ _id: userId }, { $push: { followers: currentUser._id } });
+    const updatedUser = await User.findById(userId)
+      .select('name avatar username bio following followers')
+      .lean();
+
+    res.send({ currentUser: updatedCurrentUser, selectedUser: updatedUser });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
+async function unfollow(req, res) {
+  try {
+    const currentUser = req.user;
+    const { userId } = req.body;
+
+    const user = await User.findById(userId).lean();
+    if (!user) {
+      return res.status(404).send({
+        name: 'userNotFound',
+        message: errorMessages['userNotFound'],
+      });
+    }
+
+    if (!currentUser.following.includes(userId)) {
+      return res.status(400).send({
+        name: 'notFollow',
+        message: errorMessages['notFollow'],
+      });
+    }
+
+    await User.updateOne({ _id: currentUser._id }, { $pull: { following: userId } });
+    const updatedCurrentUser = await User.findById(currentUser._id)
+      .select('-password -saved')
+      .lean();
+
+    await User.updateOne({ _id: userId }, { $pull: { followers: currentUser._id } });
+    const updatedUser = await User.findById(userId)
+      .select('name avatar username bio following followers')
+      .lean();
+
+    res.send({ currentUser: updatedCurrentUser, selectedUser: updatedUser });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
 const userCtrl = {
   getCurrentUser,
   getUserInfo,
   updateProfile,
+  follow,
+  unfollow,
 };
 
 export default userCtrl;

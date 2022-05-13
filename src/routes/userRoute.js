@@ -7,6 +7,10 @@ userRouter.get('/me', userCtrl.getCurrentUser);
 
 userRouter.post('/update-profile', userCtrl.updateProfile);
 
+userRouter.post('/follow', userCtrl.follow);
+
+userRouter.post('/unfollow', userCtrl.unfollow);
+
 userRouter.get('/:username', userCtrl.getUserInfo);
 
 export default userRouter;
