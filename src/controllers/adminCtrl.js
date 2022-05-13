@@ -1,6 +1,6 @@
 import Post from '../models/Post.js';
 import User from '../models/User.js';
-import { errorMessages } from '../utils/constants.js';
+import { generateErrorObject } from '../utils/error.js';
 
 async function setRole(req, res) {
   try {
@@ -9,10 +9,7 @@ async function setRole(req, res) {
 
     const user = await User.findById(userId).lean();
     if (!user) {
-      return res.status(404).send({
-        name: 'userNotFound',
-        message: errorMessages['userNotFound'],
-      });
+      return res.status(404).send(generateErrorObject('userNotFound'));
     }
 
     await User.updateOne({ _id: userId }, { $set: { role } });

@@ -1,7 +1,7 @@
 import { io } from '../index.js';
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
-import { errorMessages } from '../utils/constants.js';
+import { generateErrorObject } from '../utils/error.js';
 
 async function getByPostId(req, res) {
   try {
@@ -23,10 +23,7 @@ async function create(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).send({
-        name: 'postNotFound',
-        message: errorMessages['postNotFound'],
-      });
+      return res.status(404).send(generateErrorObject('postNotFound'));
     }
 
     const newComment = new Comment({
@@ -61,17 +58,11 @@ async function remove(req, res) {
 
     const comment = await Comment.findById(commentId).lean();
     if (!comment) {
-      return res.status(404).send({
-        name: 'commentNotFound',
-        message: errorMessages['commentNotFound'],
-      });
+      return res.status(404).send(generateErrorObject('commentNotFound'));
     }
 
     if (user.role !== 'admin' && !comment.userId.equals(user._id)) {
-      return res.status(403).send({
-        name: 'notAllowedDeleteComment',
-        message: errorMessages['notAllowedDeleteComment'],
-      });
+      return res.status(403).send(generateErrorObject('notAllowedDeleteComment'));
     }
 
     await Comment.deleteOne({ _id: commentId });
@@ -94,10 +85,7 @@ async function like(req, res) {
 
     const comment = await Comment.findById(commentId).lean();
     if (!comment) {
-      return res.status(404).send({
-        name: 'commentNotFound',
-        message: errorMessages['commentNotFound'],
-      });
+      return res.status(404).send(generateErrorObject('commentNotFound'));
     }
 
     const isLiked = comment.likes.some((id) => id.equals(userId));

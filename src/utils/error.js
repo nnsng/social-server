@@ -1,4 +1,4 @@
-export const errorMessages = {
+const errorMessages = {
   // auth
   accessDenied: 'Access denied.',
   invalidToken: 'Invalid token.',
@@ -23,3 +23,10 @@ export const errorMessages = {
   commentNotFound: 'Comment not found.',
   notAllowedDeleteComment: 'You are not allowed to delete this comment.',
 };
+
+export function generateErrorObject(name) {
+  return {
+    name,
+    message: errorMessages[name],
+  };
+}
