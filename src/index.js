@@ -11,6 +11,7 @@ import authRouter from './routes/authRoute.js';
 import commentRouter from './routes/commentRoute.js';
 import configRouter from './routes/configRoute.js';
 import postRouter from './routes/postRoute.js';
+import userRouter from './routes/userRoute.js';
 import { env, variables } from './utils/env.js';
 
 const app = express();
@@ -33,6 +34,7 @@ export { io };
 
 // Routes
 app.use('/api/auth', authRouter);
+app.use('/api/users', auth, userRouter);
 app.use('/api/posts', auth, postRouter);
 app.use('/api/comments', auth, commentRouter);
 app.use('/api/config', auth, configRouter);

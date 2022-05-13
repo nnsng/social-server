@@ -2,8 +2,6 @@ import bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import sendMail, { sendMailTypes } from '../config/sendMail.js';
-import Comment from '../models/Comment.js';
-import Post from '../models/Post.js';
 import User from '../models/User.js';
 import { hashPassword, randomNumber } from '../utils/common.js';
 import { errorMessages } from '../utils/constants.js';
@@ -137,51 +135,6 @@ async function active(req, res) {
     const accessToken = generateAccessToken({ _id });
 
     res.send({ user: activatedUser, token: accessToken });
-  } catch (error) {
-    res.status(500).send(error);
-  }
-}
-
-async function getCurrentUser(req, res) {
-  try {
-    const { _id } = req.user;
-
-    const user = await User.findById(_id).select('-password -saved').lean();
-    if (!user) {
-      return res.status(404).send({
-        name: 'userNotFound',
-        message: errorMessages['userNotFound'],
-      });
-    }
-
-    res.send(user);
-  } catch (error) {
-    res.status(500).send(error);
-  }
-}
-
-async function updateProfile(req, res) {
-  try {
-    const data = req.body;
-    const { username } = data;
-    const { _id } = req.user;
-
-    const existedUser = await User.findOne({ username }).lean();
-    if (existedUser && !existedUser._id.equals(_id)) {
-      return res.status(400).send({
-        name: 'usernameExist',
-        message: errorMessages['usernameExist'],
-      });
-    }
-
-    await User.updateOne({ _id }, { $set: data });
-
-    const updatedUser = await User.findById(_id).select('-password -saved').lean();
-
-    await Post.updateMany({ authorId: _id }, { $set: { author: updatedUser } });
-    await Comment.updateMany({ userId: _id }, { $set: { user: updatedUser } });
-
-    res.send(updatedUser);
   } catch (error) {
     res.status(500).send(error);
   }
@@ -324,8 +277,6 @@ const authCtrl = {
   login,
   googleLogin,
   active,
-  getCurrentUser,
-  updateProfile,
   changePassword,
   forgotPassword,
   resetPassword,
