@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
+import slugify from 'slugify';
 import sendMail, { sendMailTypes } from '../config/sendMail.js';
 import User from '../models/User.js';
 import { hashPassword, randomNumber } from '../utils/common.js';
@@ -67,7 +68,8 @@ async function googleLogin(req, res) {
     if (existedUser) {
       loginUser(existedUser, '', res);
     } else {
-      const initUsername = name.toLowerCase().trim().replace(/\s+/g, '-');
+      const _username = name.toLowerCase().trim().replace(/\s+/g, '-');
+      const initUsername = slugify(_username, { locale: 'vi', lower: true });
       let username = initUsername;
       let isExist = true;
       while (isExist) {
