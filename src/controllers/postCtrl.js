@@ -1,3 +1,4 @@
+import { io } from '../index.js';
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import User from '../models/User.js';
@@ -182,9 +183,10 @@ async function remove(req, res) {
 async function like(req, res) {
   try {
     const { postId } = req.params;
-    const { _id: userId } = req.user;
+    const user = req.user;
+    const { _id: userId } = user;
 
-    const post = await Post.findById(postId);
+    const post = await Post.findById(postId).lean();
     if (!post) {
       return res.status(404).send(generateErrorObject('postNotFound'));
     }
@@ -197,6 +199,17 @@ async function like(req, res) {
     const updatedPost = await Post.findByIdAndUpdate(postId, update, {
       new: true,
     }).lean();
+
+    if (!isLiked && !userId.equals(post.authorId)) {
+      io.to(`${post.authorId}`).emit('notify', {
+        type: 'like',
+        data: post,
+        user: {
+          name: user.name,
+          username: user.username,
+        },
+      });
+    }
 
     res.send(updatedPost);
   } catch (error) {

@@ -20,6 +20,7 @@ async function create(req, res) {
     const formData = req.body;
     const { postId } = formData;
     const { _id, name, avatar, username, bio } = req.user;
+    const user = { _id, name, avatar, username, bio };
 
     const post = await Post.findById(postId).lean();
     if (!post) {
@@ -28,13 +29,7 @@ async function create(req, res) {
 
     const newComment = new Comment({
       ...formData,
-      user: {
-        _id,
-        name,
-        avatar,
-        username,
-        bio,
-      },
+      user,
     });
     await newComment.save();
 
@@ -44,6 +39,17 @@ async function create(req, res) {
     io.to(`${postId}`).emit('createComment', {
       comment: newComment._doc,
     });
+
+    if (!user._id.equals(post.authorId)) {
+      io.to(`${post.authorId}`).emit('notify', {
+        type: 'comment',
+        data: post,
+        user: {
+          name: user.name,
+          username: user.username,
+        },
+      });
+    }
 
     res.send(newComment._doc);
   } catch (error) {
@@ -68,7 +74,9 @@ async function remove(req, res) {
     await Comment.deleteOne({ _id: commentId });
 
     const commentCount = await Comment.countDocuments({ postId: comment.postId });
-    await Post.findByIdAndUpdate(postId, { $set: { 'statistics.commentCount': commentCount } });
+    await Post.findByIdAndUpdate(comment.postId, {
+      $set: { 'statistics.commentCount': commentCount },
+    });
 
     io.to(`${comment.postId}`).emit('removeComment', { id: comment._id });
 
