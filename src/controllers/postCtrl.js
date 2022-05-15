@@ -43,13 +43,8 @@ async function getBySlug(req, res) {
     const commentCount = await Comment.countDocuments({ postId: post._id });
     const postResponse = {
       ...post,
-      statistics: {
-        ...post.statistics,
-        commentCount,
-      },
+      commentCount,
     };
-
-    await Post.findByIdAndUpdate(post._id, { $inc: { 'statistics.viewCount': 1 } });
 
     res.send(postResponse);
   } catch (error) {
@@ -193,8 +188,8 @@ async function like(req, res) {
 
     const isLiked = post.likes.some((id) => id.equals(userId));
     const update = isLiked
-      ? { $pull: { likes: userId }, $inc: { 'statistics.likeCount': -1 } }
-      : { $push: { likes: userId }, $inc: { 'statistics.likeCount': 1 } };
+      ? { $pull: { likes: userId }, $inc: { likeCount: -1 } }
+      : { $push: { likes: userId }, $inc: { likeCount: 1 } };
 
     const updatedPost = await Post.findByIdAndUpdate(postId, update, {
       new: true,
