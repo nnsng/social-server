@@ -1,3 +1,4 @@
+import { io } from '../index.js';
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import User from '../models/User.js';
@@ -42,13 +43,8 @@ async function getBySlug(req, res) {
     const commentCount = await Comment.countDocuments({ postId: post._id });
     const postResponse = {
       ...post,
-      statistics: {
-        ...post.statistics,
-        commentCount,
-      },
+      commentCount,
     };
-
-    await Post.findByIdAndUpdate(post._id, { $inc: { 'statistics.viewCount': 1 } });
 
     res.send(postResponse);
   } catch (error) {
@@ -182,21 +178,33 @@ async function remove(req, res) {
 async function like(req, res) {
   try {
     const { postId } = req.params;
-    const { _id: userId } = req.user;
+    const user = req.user;
+    const { _id: userId } = user;
 
-    const post = await Post.findById(postId);
+    const post = await Post.findById(postId).lean();
     if (!post) {
       return res.status(404).send(generateErrorObject('postNotFound'));
     }
 
     const isLiked = post.likes.some((id) => id.equals(userId));
     const update = isLiked
-      ? { $pull: { likes: userId }, $inc: { 'statistics.likeCount': -1 } }
-      : { $push: { likes: userId }, $inc: { 'statistics.likeCount': 1 } };
+      ? { $pull: { likes: userId }, $inc: { likeCount: -1 } }
+      : { $push: { likes: userId }, $inc: { likeCount: 1 } };
 
     const updatedPost = await Post.findByIdAndUpdate(postId, update, {
       new: true,
     }).lean();
+
+    if (!isLiked && !userId.equals(post.authorId)) {
+      io.to(`${post.authorId}`).emit('notify', {
+        type: 'like',
+        data: post,
+        user: {
+          name: user.name,
+          username: user.username,
+        },
+      });
+    }
 
     res.send(updatedPost);
   } catch (error) {

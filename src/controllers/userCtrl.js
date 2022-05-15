@@ -1,3 +1,4 @@
+import { io } from '../index.js';
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import User from '../models/User.js';
@@ -85,6 +86,15 @@ async function follow(req, res) {
     const updatedUser = await User.findById(userId)
       .select('name avatar username bio following followers')
       .lean();
+
+    io.to(`${userId}`).emit('notify', {
+      type: 'follow',
+      data: null,
+      user: {
+        name: currentUser.name,
+        username: currentUser.username,
+      },
+    });
 
     res.send({ currentUser: updatedCurrentUser, selectedUser: updatedUser });
   } catch (error) {
