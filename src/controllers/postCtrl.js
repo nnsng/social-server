@@ -20,10 +20,11 @@ const generateFilter = ({ search, username, hashtag }) => {
 
 async function getAll(req, res) {
   try {
+    const user = req.user;
     const { search, username, hashtag, ...params } = req.query;
 
     const filter = generateFilter({ search, username, hashtag });
-    const postResponse = await getPostResponse(filter, params);
+    const postResponse = await getPostResponse(filter, params, user);
 
     res.send(postResponse);
   } catch (error) {

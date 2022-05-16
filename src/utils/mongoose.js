@@ -1,21 +1,25 @@
 import Post from '../models/Post.js';
 
-export async function getPostResponse(filter, params) {
+export async function getPostResponse(filter, params, user) {
   try {
-    const { limit, page, sort, order } = params;
+    const { limit, page, sort, order, by } = params;
 
     const _limit = parseInt(limit) || 10;
     const _page = parseInt(page) || 1;
     const _sort = sort || 'createdAt';
     const _order = order || 'desc';
 
-    const data = await Post.find(filter)
+    const followingFilter = by === 'following' ? { authorId: { $in: user.following } } : {};
+
+    const query = { ...filter, ...followingFilter };
+
+    const data = await Post.find(query)
       .limit(_limit)
       .skip(_limit * (_page - 1))
       .sort({ [_sort]: _order })
       .lean();
 
-    const count = await Post.countDocuments(filter);
+    const count = await Post.countDocuments(query);
 
     const pagination = {
       limit: _limit,
