@@ -89,11 +89,14 @@ async function follow(req, res) {
 
     io.to(`${userId}`).emit('notify', {
       type: 'follow',
-      data: null,
+      postSlug: '',
       user: {
         name: currentUser.name,
         username: currentUser.username,
+        avatar: currentUser.avatar,
       },
+      read: false,
+      createdAt: Date.now(),
     });
 
     res.send({ currentUser: updatedCurrentUser, selectedUser: updatedUser });
