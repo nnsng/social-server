@@ -43,11 +43,14 @@ async function create(req, res) {
     if (!user._id.equals(post.authorId)) {
       io.to(`${post.authorId}`).emit('notify', {
         type: 'comment',
-        data: post,
+        postSlug: post.slug,
         user: {
           name: user.name,
           username: user.username,
+          avatar: user.avatar,
         },
+        read: false,
+        createdAt: Date.now(),
       });
     }
 

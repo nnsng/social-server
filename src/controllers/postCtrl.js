@@ -199,11 +199,14 @@ async function like(req, res) {
     if (!isLiked && !userId.equals(post.authorId)) {
       io.to(`${post.authorId}`).emit('notify', {
         type: 'like',
-        data: post,
+        postSlug: post.slug,
         user: {
           name: user.name,
           username: user.username,
+          avatar: user.avatar,
         },
+        read: false,
+        createdAt: Date.now(),
       });
     }
 
