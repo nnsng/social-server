@@ -2,28 +2,23 @@ import { io } from '../index.js';
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import User from '../models/User.js';
+import { generateRegexFilter } from '../utils/common.js';
 import { generateErrorObject } from '../utils/error.js';
 import { getPostResponse } from '../utils/mongoose.js';
 
-const generateFilter = ({ search, username, hashtag }) => {
-  if (search)
-    return {
-      slug: {
-        $regex: new RegExp(search),
-        $options: 'i',
-      },
-    };
-  if (username) return { 'author.username': username };
+const generateFilter = ({ search, hashtag, username }) => {
+  if (search) return generateRegexFilter('slug', search);
   if (hashtag) return { hashtags: hashtag };
+  if (username) return generateRegexFilter('author.username', username);
   return {};
 };
 
 async function getAll(req, res) {
   try {
     const user = req.user;
-    const { search, username, hashtag, ...params } = req.query;
+    const { search, hashtag, username, ...params } = req.query;
 
-    const filter = generateFilter({ search, username, hashtag });
+    const filter = generateFilter({ search, hashtag, username });
     const postResponse = await getPostResponse(filter, params, user);
 
     res.send(postResponse);

@@ -11,6 +11,8 @@ userRouter.post('/follow', userCtrl.follow);
 
 userRouter.post('/unfollow', userCtrl.unfollow);
 
+userRouter.get('/search', userCtrl.search);
+
 userRouter.get('/:username', userCtrl.getUserInfo);
 
 export default userRouter;

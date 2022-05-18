@@ -10,3 +10,12 @@ export async function hashPassword(password) {
 export function randomNumber() {
   return (Math.floor(Math.random() * 1000) + 1).toString().padStart(3, '0');
 }
+
+export function generateRegexFilter(key, value) {
+  return {
+    [key]: {
+      $regex: new RegExp(value),
+      $options: 'i',
+    },
+  };
+}
