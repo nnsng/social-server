@@ -2,6 +2,7 @@ import { io } from '../index.js';
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import User from '../models/User.js';
+import { generateRegexFilter } from '../utils/common.js';
 import { generateErrorObject } from '../utils/error.js';
 
 async function getCurrentUser(req, res) {
@@ -135,12 +136,26 @@ async function unfollow(req, res) {
   }
 }
 
+async function search(req, res) {
+  try {
+    const { username } = req.query;
+
+    const filter = generateRegexFilter('username', username);
+    const userList = await User.find(filter).select('name username avatar').lean();
+
+    res.send(userList);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
 const userCtrl = {
   getCurrentUser,
   getUserInfo,
   updateProfile,
   follow,
   unfollow,
+  search,
 };
 
 export default userCtrl;

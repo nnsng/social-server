@@ -2,14 +2,14 @@ import Post from '../models/Post.js';
 
 export async function getPostResponse(filter, params, user) {
   try {
-    const { limit, page, sort, order, by } = params;
+    const { limit, page, sort, order, by } = params || {};
 
     const _limit = parseInt(limit) || 10;
     const _page = parseInt(page) || 1;
     const _sort = sort || 'createdAt';
     const _order = order || 'desc';
 
-    const followingFilter = by === 'following' ? { authorId: { $in: user.following } } : {};
+    const followingFilter = user && by === 'following' ? { authorId: { $in: user.following } } : {};
 
     const query = { ...filter, ...followingFilter };
 

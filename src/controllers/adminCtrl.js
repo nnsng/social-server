@@ -28,9 +28,18 @@ async function updateDb(req, res) {
   }
 }
 
+async function testFunction(req, res) {
+  try {
+    res.sendStatus(200);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
 const adminCtrl = {
   setRole,
   updateDb,
+  testFunction,
 };
 
 export default adminCtrl;
