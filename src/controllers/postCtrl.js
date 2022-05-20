@@ -194,7 +194,10 @@ async function like(req, res) {
     if (!isLiked && !userId.equals(post.authorId)) {
       io.to(`${post.authorId}`).emit('notify', {
         type: 'like',
-        postSlug: post.slug,
+        post: {
+          _id: post._id,
+          slug: post.slug,
+        },
         user: {
           name: user.name,
           username: user.username,
