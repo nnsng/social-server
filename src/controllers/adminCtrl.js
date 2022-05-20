@@ -1,18 +1,18 @@
+import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import User from '../models/User.js';
 import { generateErrorObject } from '../utils/error.js';
 
 async function setRole(req, res) {
   try {
-    const { userId } = req.params;
-    const { role } = req.body;
+    const { username, role } = req.body;
 
-    const user = await User.findById(userId).lean();
+    const user = await User.findOne({ username }).lean();
     if (!user) {
       return res.status(404).send(generateErrorObject('userNotFound'));
     }
 
-    await User.updateOne({ _id: userId }, { $set: { role } });
+    await User.updateOne({ username }, { $set: { role } });
 
     res.sendStatus(200);
   } catch (error) {
@@ -28,18 +28,9 @@ async function updateDb(req, res) {
   }
 }
 
-async function testFunction(req, res) {
-  try {
-    res.sendStatus(200);
-  } catch (error) {
-    res.status(500).send(error);
-  }
-}
-
 const adminCtrl = {
   setRole,
   updateDb,
-  testFunction,
 };
 
 export default adminCtrl;
