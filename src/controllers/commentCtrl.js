@@ -63,6 +63,35 @@ async function create(req, res) {
   }
 }
 
+async function edit(req, res) {
+  try {
+    const { commentId } = req.params;
+    const formData = req.body;
+    const user = req.user;
+
+    const comment = await Comment.findById(commentId).lean();
+    if (!comment) {
+      return res.status(404).send(generateErrorObject('commentNotFound'));
+    }
+
+    if (!comment.userId.equals(user._id)) {
+      return res.status(403).send(generateErrorObject('notAllowedEditComment'));
+    }
+
+    const updatedComment = await Comment.findByIdAndUpdate(
+      commentId,
+      { $set: { ...formData, edited: true } },
+      { new: true }
+    ).lean();
+
+    io.to(`${comment.postId}`).emit('editComment', { comment: updatedComment });
+
+    res.send(updatedComment);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
 async function remove(req, res) {
   try {
     const { commentId } = req.params;
@@ -117,6 +146,7 @@ async function like(req, res) {
 const commentCtrl = {
   getByPostId,
   create,
+  edit,
   remove,
   like,
 };

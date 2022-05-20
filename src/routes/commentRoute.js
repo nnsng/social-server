@@ -5,6 +5,8 @@ const commentRouter = express.Router();
 
 commentRouter.post('/:commentId/like', commentCtrl.like);
 
+commentRouter.patch('/:commentId', commentCtrl.edit);
+
 commentRouter.delete('/:commentId', commentCtrl.remove);
 
 commentRouter.route('/').get(commentCtrl.getByPostId).post(commentCtrl.create);
