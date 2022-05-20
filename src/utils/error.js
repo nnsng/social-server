@@ -21,6 +21,7 @@ const errorMessages = {
   notAllowedEditPost: 'You are not allowed to edit this post.',
   notAllowedDeletePost: 'You are not allowed to delete this post.',
   commentNotFound: 'Comment not found.',
+  notAllowedEditComment: 'You are not allowed to edit this comment.',
   notAllowedDeleteComment: 'You are not allowed to delete this comment.',
 };
 
