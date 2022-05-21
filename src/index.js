@@ -8,6 +8,7 @@ import auth from './middlewares/auth.js';
 import checkAdmin from './middlewares/checkAdmin.js';
 import adminRouter from './routes/adminRoute.js';
 import authRouter from './routes/authRoute.js';
+import chatRouter from './routes/chatRoute.js';
 import commentRouter from './routes/commentRoute.js';
 import configRouter from './routes/configRoute.js';
 import postRouter from './routes/postRoute.js';
@@ -38,6 +39,7 @@ app.use('/api/users', auth, userRouter);
 app.use('/api/posts', auth, postRouter);
 app.use('/api/comments', auth, commentRouter);
 app.use('/api/config', auth, configRouter);
+app.use('/api/chat', auth, chatRouter);
 app.use('/api/admin', checkAdmin, adminRouter);
 
 // Database
