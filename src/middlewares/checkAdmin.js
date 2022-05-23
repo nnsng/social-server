@@ -19,7 +19,7 @@ async function checkAdmin(req, res, next) {
 
     const user = await User.findOne({ _id: decoded._id }).select('-password').lean();
     if (!user) {
-      return res.status(400).send(generateErrorObject('userNotFound'));
+      return res.status(404).send(generateErrorObject('userNotFound'));
     }
 
     if (user.role !== 'admin') {
