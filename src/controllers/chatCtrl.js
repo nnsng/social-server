@@ -3,43 +3,38 @@ import User from '../models/User.js';
 
 async function chat(req, res) {
   try {
-    const { group, text } = req.body;
+    const { userId, text } = req.body;
     const currentUser = req.user;
 
-    const otherUserId = group.find((id) => !currentUser._id.equals(id));
-    const otherUser = await User.findById(otherUserId).lean();
+    const otherUser = await User.findById(userId).lean();
     if (!otherUser) {
-      return res.status(403).send(generateErrorObject('userNotFound'));
+      return res.status(404).send(generateErrorObject('userNotFound'));
     }
 
-    const message = {
-      group: [
-        {
-          _id: currentUser._id,
-          name: currentUser.name,
-          avatar: currentUser.avatar,
-          username: currentUser.username,
-        },
-        {
-          _id: otherUser._id,
-          name: otherUser.name,
-          avatar: otherUser.avatar,
-          username: otherUser.username,
-        },
-      ],
-      sentUserId: currentUser._id,
-      text,
-    };
+    const group = [currentUser._id, otherUser._id];
 
     for (const userId of group) {
-      io.to(`${userId}`).emit('chat', { message });
+      const user = currentUser._id.equals(userId) ? otherUser : currentUser;
+      const response = generateResponseMessage(text, user, currentUser._id);
+      io.to(`${userId}`).emit('chat', response);
     }
 
     res.sendStatus(200);
   } catch (error) {
-    console.log('~ error', error);
     res.status(500).send(error);
   }
+}
+
+function generateResponseMessage(text, user, sentId) {
+  const { _id, name, avatar, username } = user;
+  return {
+    user: { _id, name, avatar, username },
+    message: {
+      sentId,
+      text,
+      createdAt: Date.now(),
+    },
+  };
 }
 
 const chatCtrl = {
