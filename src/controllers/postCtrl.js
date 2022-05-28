@@ -6,8 +6,8 @@ import { generateRegexFilter } from '../utils/common.js';
 import { generateErrorObject } from '../utils/error.js';
 import { getPostResponse } from '../utils/mongoose.js';
 
-const generateFilter = ({ search, hashtag, username }) => {
-  if (search) return generateRegexFilter('slug', search);
+const generateFilter = ({ title, hashtag, username }) => {
+  if (title) return generateRegexFilter('slug', title);
   if (hashtag) return { hashtags: hashtag };
   if (username) return generateRegexFilter('author.username', username);
   return {};
@@ -16,9 +16,9 @@ const generateFilter = ({ search, hashtag, username }) => {
 async function getAll(req, res) {
   try {
     const user = req.user;
-    const { search, hashtag, username, ...params } = req.query;
+    const { title, hashtag, username, ...params } = req.query;
 
-    const filter = generateFilter({ search, hashtag, username });
+    const filter = generateFilter({ title, hashtag, username });
     const postResponse = await getPostResponse(filter, params, user);
 
     res.send(postResponse);
