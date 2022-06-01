@@ -19,7 +19,6 @@ export const variables = {
   accessTokenSecret: 'ACCESS_TOKEN_SECRET',
 
   googleClientId: 'GOOGLE_CLIENT_ID',
-  googleClientSecret: 'GOOGLE_CLIENT_SECRET',
-  googleRefreshToken: 'GOOGLE_REFRESH_TOKEN',
   senderEmailAddress: 'SENDER_EMAIL_ADDRESS',
+  senderEmailPassword: 'SENDER_EMAIL_PASSWORD',
 };

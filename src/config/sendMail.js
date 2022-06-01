@@ -1,6 +1,8 @@
-import { OAuth2Client } from 'google-auth-library';
 import nodemailer from 'nodemailer';
 import { env, variables } from '../utils/env.js';
+
+const senderMailAddress = env(variables.senderEmailAddress);
+const senderMailPassword = env(variables.senderEmailPassword);
 
 export const sendMailTypes = {
   activeAccount: 'activeAccount',
@@ -8,29 +10,12 @@ export const sendMailTypes = {
 };
 
 async function sendMail(mailto, url, type) {
-  const OAUTH_PLAYGROUND = 'https://developers.google.com/oauthplayground';
-
-  const clientId = env(variables.googleClientId);
-  const clientSecret = env(variables.googleClientSecret);
-  const refreshToken = env(variables.googleRefreshToken);
-  const senderMail = env(variables.senderEmailAddress);
-
   try {
-    const oAuth2Client = new OAuth2Client(clientId, clientSecret, OAUTH_PLAYGROUND);
-
-    oAuth2Client.setCredentials({ refresh_token: refreshToken });
-
-    const accessToken = await oAuth2Client.getAccessToken();
-
     const transport = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        type: 'OAuth2',
-        user: senderMail,
-        clientId,
-        clientSecret,
-        refreshToken,
-        accessToken,
+        user: senderMailAddress,
+        pass: senderMailPassword,
       },
     });
 
@@ -40,7 +25,7 @@ async function sendMail(mailto, url, type) {
     };
 
     const mailOptions = {
-      from: senderMail,
+      from: senderMailAddress,
       to: mailto,
       subject: subjects[type],
       html: generateHtml(url, type),
