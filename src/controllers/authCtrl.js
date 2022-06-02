@@ -159,11 +159,11 @@ async function forgotPassword(req, res) {
 
     const activeToken = generateActiveToken({ _id: user._id });
 
-    await sendMail(
-      email,
-      `${clientUrl}/reset-password?token=${activeToken}`,
-      sendMailTypes.resetPassword
-    );
+    await sendMail({
+      mailto: email,
+      url: `${clientUrl}/reset-password?token=${activeToken}`,
+      type: sendMailTypes.resetPassword,
+    });
 
     res.sendStatus(200);
   } catch (error) {
@@ -233,7 +233,11 @@ async function registerUser(user, res) {
       return res.send({ user: googleUser, token: accessToken, activeToken });
     }
 
-    await sendMail(email, `${clientUrl}/active?token=${activeToken}`, sendMailTypes.activeAccount);
+    await sendMail({
+      mailto: email,
+      url: `${clientUrl}/active?token=${activeToken}`,
+      type: sendMailTypes.activeAccount,
+    });
 
     res.sendStatus(200);
   } catch (error) {
