@@ -31,8 +31,7 @@ async function sendMail({ mailto, url, type }) {
       html: generateHtml(url, type),
     };
 
-    const result = await transport.sendMail(mailOptions);
-    return result;
+    await transport.sendMail(mailOptions);
   } catch (error) {
     console.log('sendMail', error);
   }
