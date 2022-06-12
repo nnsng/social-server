@@ -1,4 +1,5 @@
 import Post from '../models/Post.js';
+import User from '../models/User.js';
 
 export async function getPostResponse(filter, params, user) {
   try {
@@ -13,11 +14,19 @@ export async function getPostResponse(filter, params, user) {
 
     const query = { ...filter, ...followingFilter };
 
-    const data = await Post.find(query)
+    const postList = await Post.find(query)
       .limit(_limit)
       .skip(_limit * (_page - 1))
       .sort({ [_sort]: _order })
       .lean();
+
+    const data = await Promise.all(
+      postList.map(async (post) => {
+        const { authorId } = post;
+        const author = await getUserDataById(authorId);
+        return { ...post, author };
+      })
+    );
 
     const count = await Post.countDocuments(query);
 
@@ -31,4 +40,9 @@ export async function getPostResponse(filter, params, user) {
   } catch (error) {
     throw error;
   }
+}
+
+export async function getUserDataById(id) {
+  const user = await User.findById(id).select('name username avatar bio').lean();
+  return user;
 }

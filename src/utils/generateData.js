@@ -1,33 +1,35 @@
 import fs from 'fs';
 import path from 'path';
+import mockData from '../__mocks__/mock_data.js';
 import { randomNumber } from './common.js';
-import mockData from '../__mocks__/mockData.js';
 
 (() => {
-  const filePath = path.join('src/__mocks__', 'postData.js');
+  const filePath = path.join('src/__mocks__', 'output_data.js');
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
   }
 
-  const data = mockData.map((post) => ({
-    title: post.title,
-    content: post.content,
-    thumbnail: `https://picsum.photos/id/${post.thumbnailId}/600/400`,
-    hashtags: [post.hashtags],
-    authorId: post.authorId.$oid,
-    author: {
-      _id: post.authorId.$oid,
-      name: post.author.name,
-      avatar: post.author.avatar,
-      username: post.author.name.toLowerCase().trim().replace(/\s+/g, '-') + randomNumber(),
-      bio: post.author.bio,
-    },
-  }));
+  const newData = mockData.map((data) => {
+    const item = {
+      ...data,
+      thumbnail: data.thumbnail ?? '',
+      hashtags: [...new Set([data.hashtag1, data.hashtag2, data.hashtag3])]
+        .filter((x) => !!x)
+        .map((x) => x.toLowerCase()),
+      author: {
+        ...data.author,
+        username: data.author.name.toLowerCase().replace(/\s+/g, '-') + randomNumber(),
+      },
+    };
 
-  const content = `
-    const postData = ${JSON.stringify(data)};
-    export default postData;
-  `;
+    delete item.hashtag1;
+    delete item.hashtag2;
+    delete item.hashtag3;
+
+    return item;
+  });
+
+  const content = `export default ${JSON.stringify(newData)};`;
 
   fs.writeFileSync(filePath, content);
 })();

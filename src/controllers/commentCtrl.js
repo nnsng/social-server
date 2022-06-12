@@ -1,15 +1,23 @@
 import { io } from '../index.js';
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
+import { ROLE } from '../utils/constants.js';
 import { generateErrorObject } from '../utils/error.js';
+import { getUserDataById } from '../utils/mongoose.js';
 
 async function getByPostId(req, res) {
   try {
     const { postId } = req.query;
 
     const commentList = await Comment.find({ postId }).sort({ createdAt: 'desc' }).lean();
+    const mappedCommentList = await Promise.all(
+      commentList.map(async (comment) => {
+        const user = await getUserDataById(comment.userId);
+        return { ...comment, user };
+      })
+    );
 
-    res.send(commentList);
+    res.send(mappedCommentList);
   } catch (error) {
     res.status(500).send(error);
   }
@@ -19,8 +27,7 @@ async function create(req, res) {
   try {
     const formData = req.body;
     const { postId } = formData;
-    const { _id, name, avatar, username, bio } = req.user;
-    const user = { _id, name, avatar, username, bio };
+    const user = req.user;
 
     const post = await Post.findById(postId).lean();
     if (!post) {
@@ -29,7 +36,7 @@ async function create(req, res) {
 
     const newComment = new Comment({
       ...formData,
-      user,
+      userId: user._id,
     });
     await newComment.save();
 
@@ -102,7 +109,7 @@ async function remove(req, res) {
       return res.status(404).send(generateErrorObject('commentNotFound'));
     }
 
-    if (user.role !== 'admin' && !comment.userId.equals(user._id)) {
+    if (user.role !== ROLE.ADMIN && !comment.userId.equals(user._id)) {
       return res.status(403).send(generateErrorObject('notAllowedDeleteComment'));
     }
 
@@ -130,7 +137,6 @@ async function like(req, res) {
     }
 
     const isLiked = comment.likes.some((id) => id.equals(userId));
-
     const update = isLiked ? { $pull: { likes: userId } } : { $push: { likes: userId } };
 
     const updatedComment = await Comment.findByIdAndUpdate(commentId, update, {

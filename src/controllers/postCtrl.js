@@ -3,11 +3,12 @@ import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import User from '../models/User.js';
 import { generateRegexFilter } from '../utils/common.js';
+import { ROLE } from '../utils/constants.js';
 import { generateErrorObject } from '../utils/error.js';
-import { getPostResponse } from '../utils/mongoose.js';
+import { getPostResponse, getUserDataById } from '../utils/mongoose.js';
 
-const generateFilter = ({ title, hashtag, username }) => {
-  if (title) return generateRegexFilter('slug', title);
+const generateFilter = ({ search, hashtag, username }) => {
+  if (search) return generateRegexFilter('slug', search);
   if (hashtag) return { hashtags: hashtag };
   if (username) return generateRegexFilter('author.username', username);
   return {};
@@ -16,9 +17,9 @@ const generateFilter = ({ title, hashtag, username }) => {
 async function getAll(req, res) {
   try {
     const user = req.user;
-    const { title, hashtag, username, ...params } = req.query;
+    const { search, hashtag, username, ...params } = req.query;
 
-    const filter = generateFilter({ title, hashtag, username });
+    const filter = generateFilter({ search, hashtag, username });
     const postResponse = await getPostResponse(filter, params, user);
 
     res.send(postResponse);
@@ -36,9 +37,11 @@ async function getBySlug(req, res) {
       return res.status(404).send(generateErrorObject('postNotFound'));
     }
 
+    const author = await getUserDataById(post.authorId);
     const commentCount = await Comment.countDocuments({ postId: post._id });
     const postResponse = {
       ...post,
+      author,
       commentCount,
     };
 
@@ -58,7 +61,7 @@ async function getForEdit(req, res) {
       return res.status(404).send(generateErrorObject('postNotFound'));
     }
 
-    if (user.role !== 'admin' && !post.authorId.equals(user._id)) {
+    if (user.role !== ROLE.ADMIN && !post.authorId.equals(user._id)) {
       return res.status(403).send(generateErrorObject('notAllowedEditPost'));
     }
 
@@ -99,19 +102,12 @@ async function getSaved(req, res) {
 async function create(req, res) {
   try {
     const formData = req.body;
-    const { _id, name, avatar, username, bio } = req.user;
+    const user = req.user;
 
     const newPost = new Post({
       ...formData,
-      author: {
-        _id,
-        name,
-        avatar,
-        username,
-        bio,
-      },
+      authorId: user._id,
     });
-
     const savedPost = await newPost.save();
 
     res.send(savedPost?._doc);
@@ -157,7 +153,7 @@ async function remove(req, res) {
       return res.status(404).send(generateErrorObject('postNotFound'));
     }
 
-    if (user.role !== 'admin' && !post.authorId.equals(user._id)) {
+    if (user.role !== ROLE.ADMIN && !post.authorId.equals(user._id)) {
       return res.status(403).send(generateErrorObject('notAllowedDeletePost'));
     }
 

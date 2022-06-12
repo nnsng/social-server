@@ -21,13 +21,6 @@ const postSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
-    author: {
-      _id: mongoose.Schema.Types.ObjectId,
-      name: String,
-      avatar: String,
-      username: String,
-      bio: String,
-    },
     hashtags: {
       type: [String],
       default: [],
