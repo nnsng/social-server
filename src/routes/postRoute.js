@@ -7,8 +7,6 @@ postRouter.get('/search', postCtrl.search);
 
 postRouter.get('/saved', postCtrl.getSaved);
 
-postRouter.get('/username', postCtrl.getByUsername);
-
 postRouter.get('/detail/:slug', postCtrl.getBySlug);
 
 postRouter.post('/:postId/like', postCtrl.like);

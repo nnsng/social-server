@@ -3,21 +3,14 @@ import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import { ROLE } from '../utils/constants.js';
 import { generateErrorObject } from '../utils/error.js';
-import { getUserDataById } from '../utils/mongoose.js';
 
 async function getByPostId(req, res) {
   try {
     const { postId } = req.query;
 
     const commentList = await Comment.find({ postId }).sort({ createdAt: 'desc' }).lean();
-    const mappedCommentList = await Promise.all(
-      commentList.map(async (comment) => {
-        const user = await getUserDataById(comment.userId);
-        return { ...comment, user };
-      })
-    );
 
-    res.send(mappedCommentList);
+    res.send(commentList);
   } catch (error) {
     res.status(500).send(error);
   }
@@ -27,7 +20,8 @@ async function create(req, res) {
   try {
     const formData = req.body;
     const { postId } = formData;
-    const user = req.user;
+    const { _id, name, username, avatar, bio } = req.user;
+    const user = { _id, name, username, avatar, bio };
 
     const post = await Post.findById(postId).lean();
     if (!post) {
@@ -36,7 +30,7 @@ async function create(req, res) {
 
     const newComment = new Comment({
       ...formData,
-      userId: user._id,
+      user,
     });
     await newComment.save();
 

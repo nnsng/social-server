@@ -5,7 +5,7 @@ import User from '../models/User.js';
 import { generateRegexFilter } from '../utils/common.js';
 import { ROLE } from '../utils/constants.js';
 import { generateErrorObject } from '../utils/error.js';
-import { getPostResponse, getUserDataById } from '../utils/mongoose.js';
+import { getPostResponse } from '../utils/mongoose.js';
 
 const generateFilter = ({ search, hashtag, username }) => {
   if (search) return generateRegexFilter('slug', search);
@@ -28,25 +28,6 @@ async function getAll(req, res) {
   }
 }
 
-async function getByUsername(req, res) {
-  try {
-    const { username, ...params } = req.query;
-
-    const user = await User.findOne({ username }).lean();
-
-    if (!user) {
-      return res.status(404).send(generateErrorObject('userNotFound'));
-    }
-
-    const filter = { authorId: user._id };
-    const postResponse = await getPostResponse(filter, params);
-
-    res.send(postResponse);
-  } catch (error) {
-    res.status(500).send(error);
-  }
-}
-
 async function getBySlug(req, res) {
   try {
     const { slug } = req.params;
@@ -56,11 +37,9 @@ async function getBySlug(req, res) {
       return res.status(404).send(generateErrorObject('postNotFound'));
     }
 
-    const author = await getUserDataById(post.authorId);
     const commentCount = await Comment.countDocuments({ postId: post._id });
     const postResponse = {
       ...post,
-      author,
       commentCount,
     };
 
@@ -107,11 +86,12 @@ async function getSaved(req, res) {
 async function create(req, res) {
   try {
     const formData = req.body;
-    const user = req.user;
+    const { _id, name, username, avatar, bio } = req.user;
+    const author = { _id, name, username, avatar, bio };
 
     const newPost = new Post({
       ...formData,
-      authorId: user._id,
+      author,
     });
     const savedPost = await newPost.save();
 
@@ -275,7 +255,6 @@ async function search(req, res) {
 
 const postCtrl = {
   getAll,
-  getByUsername,
   getBySlug,
   getForEdit,
   getSaved,
