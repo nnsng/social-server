@@ -28,6 +28,25 @@ async function getAll(req, res) {
   }
 }
 
+async function getByUsername(req, res) {
+  try {
+    const { username, ...params } = req.query;
+
+    const user = await User.findOne({ username }).lean();
+
+    if (!user) {
+      return res.status(404).send(generateErrorObject('userNotFound'));
+    }
+
+    const filter = { authorId: user._id };
+    const postResponse = await getPostResponse(filter, params);
+
+    res.send(postResponse);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
 async function getBySlug(req, res) {
   try {
     const { slug } = req.params;
@@ -66,20 +85,6 @@ async function getForEdit(req, res) {
     }
 
     res.send(post);
-  } catch (error) {
-    res.status(500).send(error);
-  }
-}
-
-async function getMyList(req, res) {
-  try {
-    const params = req.query;
-    const user = req.user;
-
-    const filter = { authorId: user._id };
-    const postResponse = await getPostResponse(filter, params);
-
-    res.send(postResponse);
   } catch (error) {
     res.status(500).send(error);
   }
@@ -270,9 +275,9 @@ async function search(req, res) {
 
 const postCtrl = {
   getAll,
+  getByUsername,
   getBySlug,
   getForEdit,
-  getMyList,
   getSaved,
   create,
   update,

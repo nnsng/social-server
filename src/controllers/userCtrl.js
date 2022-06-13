@@ -55,9 +55,6 @@ async function updateProfile(req, res) {
 
     const updatedUser = await User.findById(user._id).select('-password -saved').lean();
 
-    await Post.updateMany({ authorId: user._id }, { $set: { author: updatedUser } });
-    await Comment.updateMany({ userId: user._id }, { $set: { user: updatedUser } });
-
     res.send(updatedUser);
   } catch (error) {
     res.status(500).send(error);

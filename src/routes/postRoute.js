@@ -5,9 +5,9 @@ const postRouter = express.Router();
 
 postRouter.get('/search', postCtrl.search);
 
-postRouter.get('/my', postCtrl.getMyList);
-
 postRouter.get('/saved', postCtrl.getSaved);
+
+postRouter.get('/username', postCtrl.getByUsername);
 
 postRouter.get('/detail/:slug', postCtrl.getBySlug);
 
