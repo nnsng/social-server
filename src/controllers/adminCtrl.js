@@ -1,7 +1,7 @@
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import User from '../models/User.js';
-import { hashPassword } from '../utils/common.js';
+import { hashPassword, randomNumber } from '../utils/common.js';
 import { generateErrorObject } from '../utils/error.js';
 import mockData from '../__mocks__/output_data.js';
 
@@ -51,11 +51,17 @@ async function createMockData(req, res) {
         role: 'test',
       });
       const savedUser = await newUser.save();
-      const userId = savedUser._id;
 
       const newPost = new Post({
         ...post,
-        authorId: userId,
+        authorId: savedUser._id,
+        author: {
+          _id: savedUser._id,
+          name: savedUser.name,
+          username: savedUser.username,
+          avatar: savedUser.avatar,
+          bio: savedUser.bio,
+        },
       });
       await newPost.save();
     }

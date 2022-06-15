@@ -18,7 +18,7 @@ import { randomNumber } from './common.js';
         .map((x) => x.toLowerCase()),
       author: {
         ...data.author,
-        username: data.author.name.toLowerCase().replace(/\s+/g, '-') + randomNumber(),
+        username: data.author.name.toLowerCase().replace(/\s+/g, '-') + randomNumber(0, 1000),
       },
     };
 

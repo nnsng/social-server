@@ -6,8 +6,8 @@ export async function hashPassword(password) {
   return hashedPassword;
 }
 
-export function randomNumber() {
-  return (Math.floor(Math.random() * 1000) + 1).toString().padStart(3, '0');
+export function randomNumber(start, end) {
+  return Math.floor(Math.random() * (end - start)) + start;
 }
 
 export function generateRegexFilter(key, value) {

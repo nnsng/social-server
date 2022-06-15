@@ -5,7 +5,7 @@ const adminRouter = express.Router();
 
 adminRouter.post('/role', adminCtrl.setRole);
 
-adminRouter.get('/updateDb', adminCtrl.updateDb);
+adminRouter.get('/update-db', adminCtrl.updateDb);
 
 adminRouter.get('/create-mock', adminCtrl.createMockData);
 

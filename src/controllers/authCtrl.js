@@ -75,7 +75,7 @@ async function googleLogin(req, res) {
       while (isExist) {
         const existedUser = await User.findOne({ username }).lean();
         if (existedUser) {
-          username = initUsername + randomNumber();
+          username = initUsername + randomNumber(0, 1000);
         } else {
           isExist = false;
         }
