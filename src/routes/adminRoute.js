@@ -7,6 +7,4 @@ adminRouter.post('/role', adminCtrl.setRole);
 
 adminRouter.get('/update-db', adminCtrl.updateDb);
 
-adminRouter.get('/create-mock', adminCtrl.createMockData);
-
 export default adminRouter;
