@@ -34,13 +34,17 @@ async function register(req, res) {
       email,
       password,
       name,
-      username,
+      username: username.toLowerCase(),
       type: 'local',
     };
 
-    const existedUser = await User.findOne({ email });
+    let existedUser = await User.findOne({ email }).lean();
     if (existedUser) {
       return res.status(400).send(generateErrorObject('emailExist'));
+    }
+    existedUser = await User.findOne({ username }).lean();
+    if (existedUser) {
+      return res.status(400).send(generateErrorObject('usernameExist'));
     }
 
     registerUser(userInfo, res);
@@ -68,8 +72,12 @@ async function googleLogin(req, res) {
     if (existedUser) {
       loginUser(existedUser, '', res);
     } else {
-      const _username = name.toLowerCase().trim().replace(/\s+/g, '-');
-      const initUsername = slugify(_username, { locale: 'vi', lower: true });
+      const initUsername = slugify(name, {
+        trim: true,
+        replacement: '-',
+        lower: true,
+        locale: 'vi',
+      });
       let username = initUsername;
       let isExist = true;
       while (isExist) {

@@ -39,10 +39,17 @@ async function getUserInfo(req, res) {
 
 async function updateProfile(req, res) {
   try {
-    const { email, ...data } = req.body;
     const user = req.user;
+    const { name, email, username, avatar, bio } = req.body;
+    const data = {
+      name,
+      email,
+      username: username.toLowerCase(),
+      avatar,
+      bio,
+    };
 
-    if (email !== user.email) {
+    if (data.email !== user.email) {
       return res.status(400).send(generateErrorObject('cannotChangeEmail'));
     }
 
