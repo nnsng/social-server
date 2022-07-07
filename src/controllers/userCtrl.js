@@ -4,6 +4,7 @@ import Post from '../models/Post.js';
 import User from '../models/User.js';
 import { generateRegexFilter } from '../utils/common.js';
 import { generateErrorObject } from '../utils/error.js';
+import { mapFollowUserId } from '../utils/mongoose.js';
 
 async function getCurrentUser(req, res) {
   try {
@@ -13,6 +14,8 @@ async function getCurrentUser(req, res) {
     if (!user) {
       return res.status(404).send(generateErrorObject('userNotFound'));
     }
+
+    await mapFollowUserId(user);
 
     res.send(user);
   } catch (error) {
@@ -30,6 +33,8 @@ async function getUserInfo(req, res) {
     if (!user) {
       return res.status(404).send(generateErrorObject('userNotFound'));
     }
+
+    await mapFollowUserId(user);
 
     res.send(user);
   } catch (error) {
@@ -107,6 +112,9 @@ async function follow(req, res) {
       createdAt: Date.now(),
     });
 
+    await mapFollowUserId(updatedCurrentUser);
+    await mapFollowUserId(updatedUser);
+
     res.send({ currentUser: updatedCurrentUser, selectedUser: updatedUser });
   } catch (error) {
     res.status(500).send(error);
@@ -136,6 +144,9 @@ async function unfollow(req, res) {
     const updatedUser = await User.findById(userId)
       .select('name avatar username bio following followers')
       .lean();
+
+    await mapFollowUserId(updatedCurrentUser);
+    await mapFollowUserId(updatedUser);
 
     res.send({ currentUser: updatedCurrentUser, selectedUser: updatedUser });
   } catch (error) {
