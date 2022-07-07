@@ -1,4 +1,5 @@
 import Post from '../models/Post.js';
+import User from '../models/User.js';
 
 export async function getPostResponse(filter, params, user) {
   try {
@@ -28,6 +29,22 @@ export async function getPostResponse(filter, params, user) {
     };
 
     return { data, pagination };
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function mapFollowUserId(user) {
+  try {
+    for await (const key of ['following', 'followers']) {
+      user[key] = (
+        await Promise.all(
+          user[key].map(async (id) => {
+            return await User.findById(id).select('name').lean();
+          })
+        )
+      ).reverse();
+    }
   } catch (error) {
     throw error;
   }
