@@ -3,7 +3,7 @@ import User from '../models/User.js';
 import { env, variables } from '../utils/env.js';
 import { generateErrorObject } from '../utils/error.js';
 
-async function checkAdmin(req, res, next) {
+async function admin(req, res, next) {
   try {
     const headerAuthorization = req.header('Authorization');
     if (!headerAuthorization) {
@@ -34,4 +34,4 @@ async function checkAdmin(req, res, next) {
   }
 }
 
-export default checkAdmin;
+export default admin;
