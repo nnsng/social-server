@@ -46,8 +46,9 @@ async function updateProfile(req, res) {
   try {
     const user = req.user;
     const { name, email, username, avatar, bio } = req.body;
+
     const data = {
-      name,
+      name: name.trim(),
       email,
       username: username.toLowerCase(),
       avatar,

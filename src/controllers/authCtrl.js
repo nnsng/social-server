@@ -31,9 +31,9 @@ async function register(req, res) {
     const { email, password, name, username } = req.body;
 
     const userInfo = {
-      email,
+      email: email.trim().toLowerCase(),
       password,
-      name,
+      name: name.trim(),
       username: username.toLowerCase(),
       type: 'local',
     };
