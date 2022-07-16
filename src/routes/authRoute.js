@@ -12,6 +12,8 @@ authRouter.post('/google-login', authCtrl.googleLogin);
 
 authRouter.post('/active', authCtrl.active);
 
+authRouter.post('/reactive', authCtrl.reactive);
+
 authRouter.post('/password/change', auth, authCtrl.changePassword);
 
 authRouter.post('/password/forgot', authCtrl.forgotPassword);
