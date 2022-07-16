@@ -108,9 +108,9 @@ async function googleLogin(req, res) {
 
 async function active(req, res) {
   try {
-    const { token: activeToken } = req.body;
+    const { token } = req.body;
 
-    const { _id } = jwt.verify(activeToken, env(variables.activeTokenSecret));
+    const { _id } = jwt.verify(token, env(variables.activeTokenSecret));
 
     if (!_id) {
       return res.status(401).send(generateErrorObject('invalidAuthen'));
@@ -125,11 +125,38 @@ async function active(req, res) {
     }
 
     await User.updateOne({ _id }, { $set: { active: true } });
-    const activatedUser = await User.findById(_id).select('-password -saved').lean();
 
-    const accessToken = generateAccessToken({ _id });
+    res.sendStatus(200);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
 
-    res.send({ user: activatedUser, token: accessToken });
+async function reactive(req, res) {
+  try {
+    const { _id } = req.body;
+
+    if (!_id) {
+      return res.status(401).send(generateErrorObject('invalidAuthen'));
+    }
+
+    const user = await User.findById(_id).lean();
+    if (!user) {
+      return res.status(404).send(generateErrorObject('userNotFound'));
+    }
+    if (user.active) {
+      return res.status(400).send(generateErrorObject('accountActive'));
+    }
+
+    const activeToken = generateActiveToken({ _id });
+
+    await sendMail({
+      mailto: user.email,
+      url: `${clientUrl}/active?token=${activeToken}`,
+      type: sendMailTypes.activeAccount,
+    });
+
+    res.sendStatus(200);
   } catch (error) {
     res.status(500).send(error);
   }
@@ -258,6 +285,7 @@ const authCtrl = {
   login,
   googleLogin,
   active,
+  reactive,
   changePassword,
   forgotPassword,
   resetPassword,
