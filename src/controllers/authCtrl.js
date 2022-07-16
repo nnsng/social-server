@@ -158,7 +158,6 @@ async function reactive(req, res) {
 
     res.sendStatus(200);
   } catch (error) {
-    console.log(error.name);
     res.status(500).send(error);
   }
 }
