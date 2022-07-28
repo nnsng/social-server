@@ -77,6 +77,12 @@ async function getSaved(req, res) {
     const filter = { _id: { $in: saved } };
     const postResponse = await getPostResponse(filter, params);
 
+    const postList = [...postResponse.data];
+    saved.reverse().forEach((postId, idx) => {
+      const post = postList.find((p) => p._id.equals(postId));
+      postResponse.data[idx] = post;
+    });
+
     res.send(postResponse);
   } catch (error) {
     res.status(500).send(error);
