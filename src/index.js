@@ -1,17 +1,9 @@
 import cors from 'cors';
 import express from 'express';
 import http from 'http';
-import { Server } from 'socket.io';
 import { connectToDatabase } from './config/database.js';
-import { socketServer } from './config/socket.js';
-import admin from './middlewares/admin.js';
-import auth from './middlewares/auth.js';
-import adminRouter from './routes/adminRoute.js';
-import authRouter from './routes/authRoute.js';
-import chatRouter from './routes/chatRoute.js';
-import commentRouter from './routes/commentRoute.js';
-import postRouter from './routes/postRoute.js';
-import userRouter from './routes/userRoute.js';
+import { connectToSocket } from './config/socket.js';
+import initRoutes from './routes/index.js';
 import { env, variables } from './utils/env.js';
 
 const app = express();
@@ -23,22 +15,11 @@ app.use(cors());
 
 // Socket
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: '*',
-  },
-});
-
-io.on('connection', socketServer);
+const io = connectToSocket(server);
 export { io };
 
 // Routes
-app.use('/api/auth', authRouter);
-app.use('/api/users', auth, userRouter);
-app.use('/api/posts', auth, postRouter);
-app.use('/api/comments', auth, commentRouter);
-app.use('/api/chat', auth, chatRouter);
-app.use('/api/admin', admin, adminRouter);
+initRoutes(app);
 
 // Database
 const URI = env(variables.mongoUri);
