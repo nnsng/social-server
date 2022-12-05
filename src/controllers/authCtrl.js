@@ -3,10 +3,9 @@ import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import slugify from 'slugify';
 import sendMail, { sendMailTypes } from '../config/sendMail.js';
-import User from '../models/User.js';
+import { User } from '../models/index.js';
 import { hashPassword, randomNumber } from '../utils/common.js';
 import { env, variables } from '../utils/env.js';
-import { generateErrorObject } from '../utils/error.js';
 import { generateAccessToken, generateActiveToken } from '../utils/generateToken.js';
 
 const clientUrl = env(variables.clientUrl);
@@ -17,12 +16,12 @@ async function login(req, res) {
 
     const existedUser = await User.findOne({ email });
     if (!existedUser) {
-      return res.status(400).send(generateErrorObject('emailNotRegister'));
+      return res.status(400).json({ error: 'auth.emailNotRegister' });
     }
 
     loginUser(existedUser, password, res);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -40,16 +39,16 @@ async function register(req, res) {
 
     let existedUser = await User.findOne({ email }).lean();
     if (existedUser) {
-      return res.status(400).send(generateErrorObject('emailExist'));
+      return res.status(400).json({ error: 'auth.emailExist' });
     }
     existedUser = await User.findOne({ username }).lean();
     if (existedUser) {
-      return res.status(400).send(generateErrorObject('usernameExist'));
+      return res.status(400).json({ error: 'auth.usernameExist' });
     }
 
     registerUser(userInfo, res);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -102,7 +101,7 @@ async function googleLogin(req, res) {
       registerUser(newUser, res);
     }
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -113,22 +112,22 @@ async function active(req, res) {
     const { _id } = jwt.verify(token, env(variables.activeTokenSecret));
 
     if (!_id) {
-      return res.status(401).send(generateErrorObject('invalidAuthen'));
+      return res.status(401).json({ error: 'auth.invalidAuth' });
     }
 
     const user = await User.findById(_id).lean();
     if (!user) {
-      return res.status(404).send(generateErrorObject('userNotFound'));
+      return res.status(404).json({ error: 'user.notFound' });
     }
     if (user.active) {
-      return res.status(400).send(generateErrorObject('accountActive'));
+      return res.status(400).json({ error: 'auth.alreadyActive' });
     }
 
     await User.updateOne({ _id }, { $set: { active: true } });
 
     res.sendStatus(200);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -137,15 +136,15 @@ async function reactive(req, res) {
     const { _id } = req.body;
 
     if (!_id) {
-      return res.status(401).send(generateErrorObject('invalidAuthen'));
+      return res.status(401).json({ error: 'auth.invalidAuth' });
     }
 
     const user = await User.findById(_id).lean();
     if (!user) {
-      return res.status(404).send(generateErrorObject('userNotFound'));
+      return res.status(404).json({ error: 'user.notFound' });
     }
     if (user.active) {
-      return res.status(400).send(generateErrorObject('accountActive'));
+      return res.status(400).json({ error: 'auth.alreadyActive' });
     }
 
     const activeToken = generateActiveToken({ _id });
@@ -158,7 +157,7 @@ async function reactive(req, res) {
 
     res.sendStatus(200);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -170,7 +169,7 @@ async function changePassword(req, res) {
     // Check password validity
     const validPassword = await bcrypt.compare(currentPassword, user.password);
     if (!validPassword) {
-      return res.status(400).send(generateErrorObject('passwordNotCorrect'));
+      return res.status(400).json({ error: 'auth.passwordNotCorrect' });
     }
 
     // Hash password
@@ -179,7 +178,7 @@ async function changePassword(req, res) {
     await User.updateOne({ _id: userId }, { $set: { password: hashedPassword } });
     res.sendStatus(200);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -189,7 +188,7 @@ async function forgotPassword(req, res) {
 
     const user = await User.findOne({ email }).lean();
     if (!user) {
-      return res.status(400).send(generateErrorObject('emailNotRegister'));
+      return res.status(400).json({ error: 'auth.emailNotRegister' });
     }
 
     const activeToken = generateActiveToken({ _id: user._id });
@@ -202,7 +201,7 @@ async function forgotPassword(req, res) {
 
     res.sendStatus(200);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -212,12 +211,12 @@ async function resetPassword(req, res) {
 
     const decoded = jwt.verify(token, env(variables.activeTokenSecret));
     if (!decoded) {
-      return res.status(401).send(generateErrorObject('invalidAuthen'));
+      return res.status(401).json({ error: 'auth.invalidAuth' });
     }
 
     const user = await User.findById(decoded._id).lean();
     if (!user) {
-      return res.status(404).send(generateErrorObject('userNotFound'));
+      return res.status(404).json({ error: 'user.notFound' });
     }
 
     const hashedPassword = await hashPassword(newPassword);
@@ -226,7 +225,7 @@ async function resetPassword(req, res) {
 
     res.sendStatus(200);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -235,20 +234,20 @@ async function loginUser(user, password, res) {
     if (password.length !== 0) {
       const validPassword = await bcrypt.compare(password, user.password);
       if (!validPassword) {
-        return res.status(400).send(generateErrorObject('passwordNotCorrect'));
+        return res.status(400).json({ error: 'auth.passwordNotCorrect' });
       }
     }
 
     const loggedInUser = await User.findById(user._id).select('-password -saved').lean();
     if (!loggedInUser.active) {
-      return res.status(400).send(generateErrorObject('activeAccount'));
+      return res.status(400).json({ error: 'auth.alreadyActive' });
     }
 
     const accessToken = generateAccessToken({ _id: loggedInUser._id });
 
     res.send({ user: loggedInUser, token: accessToken });
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -276,7 +275,7 @@ async function registerUser(user, res) {
 
     res.sendStatus(200);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 

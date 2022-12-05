@@ -1,10 +1,7 @@
 import { io } from '../index.js';
-import Comment from '../models/Comment.js';
-import Post from '../models/Post.js';
-import User from '../models/User.js';
+import { Comment, Post, User } from '../models/index.js';
 import { generateRegexFilter } from '../utils/common.js';
 import { ROLE } from '../utils/constants.js';
-import { generateErrorObject } from '../utils/error.js';
 import { getPostResponse } from '../utils/mongoose.js';
 
 const generateFilter = ({ search, hashtag, username }) => {
@@ -24,7 +21,7 @@ async function getAll(req, res) {
 
     res.send(postResponse);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -34,7 +31,7 @@ async function getBySlug(req, res) {
 
     const post = await Post.findOne({ slug }).lean();
     if (!post) {
-      return res.status(404).send(generateErrorObject('postNotFound'));
+      return res.status(404).json({ error: 'post.notFound' });
     }
 
     const commentCount = await Comment.countDocuments({ postId: post._id });
@@ -45,7 +42,7 @@ async function getBySlug(req, res) {
 
     res.send(postResponse);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -56,16 +53,16 @@ async function getForEdit(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).send(generateErrorObject('postNotFound'));
+      return res.status(404).json({ error: 'post.notFound' });
     }
 
     if (user.role !== ROLE.ADMIN && !post.authorId.equals(user._id)) {
-      return res.status(403).send(generateErrorObject('notAllowedEditPost'));
+      return res.status(403).json({ error: 'post.notAllowedToEdit' });
     }
 
     res.send(post);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -85,7 +82,7 @@ async function getSaved(req, res) {
 
     res.send(postResponse);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -103,7 +100,7 @@ async function create(req, res) {
 
     res.send(savedPost?._doc);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -115,11 +112,11 @@ async function update(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).send(generateErrorObject('postNotFound'));
+      return res.status(404).json({ error: 'post.notFound' });
     }
 
     if (!post.authorId.equals(user._id)) {
-      return res.status(403).send(generateErrorObject('notAllowedEditPost'));
+      return res.status(403).json({ error: 'post.notAllowedToEdit' });
     }
 
     const updatedPost = await Post.findByIdAndUpdate(
@@ -130,7 +127,7 @@ async function update(req, res) {
 
     res.send(updatedPost);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -141,11 +138,11 @@ async function remove(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).send(generateErrorObject('postNotFound'));
+      return res.status(404).json({ error: 'post.notFound' });
     }
 
     if (user.role !== ROLE.ADMIN && !post.authorId.equals(user._id)) {
-      return res.status(403).send(generateErrorObject('notAllowedDeletePost'));
+      return res.status(403).json({ error: 'post.notAllowedToDelete' });
     }
 
     await Post.deleteOne({ _id: postId });
@@ -154,7 +151,7 @@ async function remove(req, res) {
 
     res.sendStatus(200);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -166,7 +163,7 @@ async function like(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).send(generateErrorObject('postNotFound'));
+      return res.status(404).json({ error: 'post.notFound' });
     }
 
     const isLiked = post.likes.some((id) => id.equals(userId));
@@ -197,7 +194,7 @@ async function like(req, res) {
 
     res.send(updatedPost);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -208,18 +205,18 @@ async function save(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).send(generateErrorObject('postNotFound'));
+      return res.status(404).json({ error: 'post.notFound' });
     }
 
     if (user.saved.includes(postId)) {
-      return res.status(400).send(generateErrorObject('postSaved'));
+      return res.status(400).json({ error: 'post.saved' });
     }
 
     await User.updateOne({ _id: user._id }, { $push: { saved: postId } });
 
     res.sendStatus(200);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -230,18 +227,18 @@ async function unsave(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).send(generateErrorObject('postNotFound'));
+      return res.status(404).json({ error: 'post.notFound' });
     }
 
     if (!user.saved.includes(postId)) {
-      return res.status(400).send(generateErrorObject('postNotSaved'));
+      return res.status(400).json({ error: 'post.notSaved' });
     }
 
     await User.updateOne({ _id: user._id }, { $pull: { saved: postId } });
 
     res.sendStatus(200);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -255,7 +252,7 @@ async function search(req, res) {
 
     return res.send(postList);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -276,7 +273,7 @@ async function getTopHashtags(req, res) {
 
     res.send(topHashtags);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 

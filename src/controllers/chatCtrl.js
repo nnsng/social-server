@@ -1,5 +1,5 @@
 import { io } from '../index.js';
-import User from '../models/User.js';
+import { User } from '../models/index.js';
 
 async function chat(req, res) {
   try {
@@ -8,7 +8,7 @@ async function chat(req, res) {
 
     const otherUser = await User.findById(userId).lean();
     if (!otherUser) {
-      return res.status(404).send(generateErrorObject('userNotFound'));
+      return res.status(404).json({ error: 'user.notFound' });
     }
 
     const group = [currentUser._id, otherUser._id];
@@ -21,7 +21,7 @@ async function chat(req, res) {
 
     res.sendStatus(200);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
