@@ -1,5 +1,4 @@
-import admin from '../middlewares/admin.js';
-import auth from '../middlewares/auth.js';
+import { admin, auth } from '../middlewares/index.js';
 import adminRouter from './adminRoute.js';
 import authRouter from './authRoute.js';
 import chatRouter from './chatRoute.js';

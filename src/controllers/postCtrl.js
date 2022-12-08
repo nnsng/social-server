@@ -1,7 +1,7 @@
+import { Role } from '../constants/index.js';
 import { io } from '../index.js';
 import { Comment, Post, User } from '../models/index.js';
 import { generateRegexFilter } from '../utils/common.js';
-import { ROLE } from '../utils/constants.js';
 import { getPostResponse } from '../utils/mongoose.js';
 
 const generateFilter = ({ search, hashtag, username }) => {
@@ -56,7 +56,7 @@ async function getForEdit(req, res) {
       return res.status(404).json({ error: 'post.notFound' });
     }
 
-    if (user.role !== ROLE.ADMIN && !post.authorId.equals(user._id)) {
+    if (user.role !== Role.ADMIN && !post.authorId.equals(user._id)) {
       return res.status(403).json({ error: 'post.notAllowedToEdit' });
     }
 
@@ -141,7 +141,7 @@ async function remove(req, res) {
       return res.status(404).json({ error: 'post.notFound' });
     }
 
-    if (user.role !== ROLE.ADMIN && !post.authorId.equals(user._id)) {
+    if (user.role !== Role.ADMIN && !post.authorId.equals(user._id)) {
       return res.status(403).json({ error: 'post.notAllowedToDelete' });
     }
 

@@ -1,6 +1,6 @@
+import { Role } from '../constants/index.js';
 import { io } from '../index.js';
 import { Comment, Post } from '../models/index.js';
-import { ROLE } from '../utils/constants.js';
 
 async function getByPostId(req, res) {
   try {
@@ -101,7 +101,7 @@ async function remove(req, res) {
       return res.status(404).json({ error: 'comment.notFound' });
     }
 
-    if (user.role !== ROLE.ADMIN && !comment.userId.equals(user._id)) {
+    if (user.role !== Role.ADMIN && !comment.userId.equals(user._id)) {
       return res.status(403).json({ error: 'comment.notAllowedToDelete' });
     }
 
