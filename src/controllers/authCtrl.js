@@ -7,6 +7,7 @@ import { User } from '../models/index.js';
 import { hashPassword, randomNumber } from '../utils/common.js';
 import { env, variables } from '../utils/env.js';
 import { generateAccessToken, generateActiveToken } from '../utils/generateToken.js';
+import { generateErrorResponse } from '../utils/response.js';
 
 const clientUrl = env(variables.clientUrl);
 
@@ -16,7 +17,7 @@ async function login(req, res) {
 
     const existedUser = await User.findOne({ email });
     if (!existedUser) {
-      return res.status(400).json({ error: 'auth.emailNotRegister' });
+      return res.status(400).json(generateErrorResponse('auth.emailNotRegister'));
     }
 
     loginUser(existedUser, password, res);
@@ -39,11 +40,11 @@ async function register(req, res) {
 
     let existedUser = await User.findOne({ email }).lean();
     if (existedUser) {
-      return res.status(400).json({ error: 'auth.emailExist' });
+      return res.status(400).json(generateErrorResponse('auth.emailExist'));
     }
     existedUser = await User.findOne({ username }).lean();
     if (existedUser) {
-      return res.status(400).json({ error: 'auth.usernameExist' });
+      return res.status(400).json(generateErrorResponse('auth.usernameExist'));
     }
 
     registerUser(userInfo, res);
@@ -112,15 +113,15 @@ async function active(req, res) {
     const { _id } = jwt.verify(token, env(variables.activeTokenSecret));
 
     if (!_id) {
-      return res.status(401).json({ error: 'auth.invalidAuth' });
+      return res.status(401).json(generateErrorResponse('auth.invalidAuth'));
     }
 
     const user = await User.findById(_id).lean();
     if (!user) {
-      return res.status(404).json({ error: 'user.notFound' });
+      return res.status(404).json(generateErrorResponse('user.notFound'));
     }
     if (user.active) {
-      return res.status(400).json({ error: 'auth.alreadyActive' });
+      return res.status(400).json(generateErrorResponse('auth.alreadyActive'));
     }
 
     await User.updateOne({ _id }, { $set: { active: true } });
@@ -136,15 +137,15 @@ async function reactive(req, res) {
     const { _id } = req.body;
 
     if (!_id) {
-      return res.status(401).json({ error: 'auth.invalidAuth' });
+      return res.status(401).json(generateErrorResponse('auth.invalidAuth'));
     }
 
     const user = await User.findById(_id).lean();
     if (!user) {
-      return res.status(404).json({ error: 'user.notFound' });
+      return res.status(404).json(generateErrorResponse('user.notFound'));
     }
     if (user.active) {
-      return res.status(400).json({ error: 'auth.alreadyActive' });
+      return res.status(400).json(generateErrorResponse('auth.alreadyActive'));
     }
 
     const activeToken = generateActiveToken({ _id });
@@ -169,7 +170,7 @@ async function changePassword(req, res) {
     // Check password validity
     const validPassword = await bcrypt.compare(currentPassword, user.password);
     if (!validPassword) {
-      return res.status(400).json({ error: 'auth.passwordNotCorrect' });
+      return res.status(400).json(generateErrorResponse('auth.passwordNotCorrect'));
     }
 
     // Hash password
@@ -188,7 +189,7 @@ async function forgotPassword(req, res) {
 
     const user = await User.findOne({ email }).lean();
     if (!user) {
-      return res.status(400).json({ error: 'auth.emailNotRegister' });
+      return res.status(400).json(generateErrorResponse('auth.emailNotRegister'));
     }
 
     const activeToken = generateActiveToken({ _id: user._id });
@@ -211,12 +212,12 @@ async function resetPassword(req, res) {
 
     const decoded = jwt.verify(token, env(variables.activeTokenSecret));
     if (!decoded) {
-      return res.status(401).json({ error: 'auth.invalidAuth' });
+      return res.status(401).json(generateErrorResponse('auth.invalidAuth'));
     }
 
     const user = await User.findById(decoded._id).lean();
     if (!user) {
-      return res.status(404).json({ error: 'user.notFound' });
+      return res.status(404).json(generateErrorResponse('user.notFound'));
     }
 
     const hashedPassword = await hashPassword(newPassword);
@@ -234,13 +235,13 @@ async function loginUser(user, password, res) {
     if (password.length !== 0) {
       const validPassword = await bcrypt.compare(password, user.password);
       if (!validPassword) {
-        return res.status(400).json({ error: 'auth.passwordNotCorrect' });
+        return res.status(400).json(generateErrorResponse('auth.passwordNotCorrect'));
       }
     }
 
     const loggedInUser = await User.findById(user._id).select('-password -saved').lean();
     if (!loggedInUser.active) {
-      return res.status(400).json({ error: 'auth.alreadyActive' });
+      return res.status(400).json(generateErrorResponse('auth.alreadyActive'));
     }
 
     const accessToken = generateAccessToken({ _id: loggedInUser._id });

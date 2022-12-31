@@ -1,5 +1,6 @@
 import { io } from '../index.js';
 import { User } from '../models/index.js';
+import { generateErrorResponse } from '../utils/response.js';
 
 async function chat(req, res) {
   try {
@@ -8,7 +9,7 @@ async function chat(req, res) {
 
     const otherUser = await User.findById(userId).lean();
     if (!otherUser) {
-      return res.status(404).json({ error: 'user.notFound' });
+      return res.status(404).json(generateErrorResponse('user.notFound'));
     }
 
     const group = [currentUser._id, otherUser._id];

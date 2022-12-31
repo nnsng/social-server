@@ -2,6 +2,7 @@ import { io } from '../index.js';
 import { Comment, Post, User } from '../models/index.js';
 import { generateRegexFilter } from '../utils/common.js';
 import { mapFollowUserId } from '../utils/mongoose.js';
+import { generateErrorResponse } from '../utils/response.js';
 
 async function getCurrentUser(req, res) {
   try {
@@ -9,7 +10,7 @@ async function getCurrentUser(req, res) {
 
     const user = await User.findById(_id).select('-password -saved').lean();
     if (!user) {
-      return res.status(404).json({ error: 'user.notFound' });
+      return res.status(404).json(generateErrorResponse('user.notFound'));
     }
 
     await mapFollowUserId(user);
@@ -28,7 +29,7 @@ async function getUserInfo(req, res) {
       .select('name avatar username bio following followers')
       .lean();
     if (!user) {
-      return res.status(404).json({ error: 'user.notFound' });
+      return res.status(404).json(generateErrorResponse('user.notFound'));
     }
 
     await mapFollowUserId(user);
@@ -53,12 +54,12 @@ async function updateProfile(req, res) {
     };
 
     if (data.email !== user.email) {
-      return res.status(400).json({ error: 'user.cannotChangeEmail' });
+      return res.status(400).json(generateErrorResponse('user.cannotChangeEmail'));
     }
 
     const existedUser = await User.findOne({ username: data.username }).lean();
     if (existedUser && !existedUser._id.equals(user._id)) {
-      return res.status(400).json({ error: 'auth.usernameExist' });
+      return res.status(400).json(generateErrorResponse('auth.usernameExist'));
     }
 
     await User.updateOne({ _id: user._id }, { $set: data });
@@ -81,11 +82,11 @@ async function follow(req, res) {
 
     const user = await User.findById(userId).lean();
     if (!user) {
-      return res.status(404).json({ error: 'user.notFound' });
+      return res.status(404).json(generateErrorResponse('user.notFound'));
     }
 
     if (currentUser.following.includes(userId)) {
-      return res.status(400).json({ error: 'user.alreadyFollow' });
+      return res.status(400).json(generateErrorResponse('user.alreadyFollow'));
     }
 
     await User.updateOne({ _id: currentUser._id }, { $push: { following: userId } });
@@ -126,11 +127,11 @@ async function unfollow(req, res) {
 
     const user = await User.findById(userId).lean();
     if (!user) {
-      return res.status(404).json({ error: 'user.notFound' });
+      return res.status(404).json(generateErrorResponse('user.notFound'));
     }
 
     if (!currentUser.following.includes(userId)) {
-      return res.status(400).json({ error: 'user.notFollow' });
+      return res.status(400).json(generateErrorResponse('user.notFollow'));
     }
 
     await User.updateOne({ _id: currentUser._id }, { $pull: { following: userId } });

@@ -3,6 +3,7 @@ import { io } from '../index.js';
 import { Comment, Post, User } from '../models/index.js';
 import { generateRegexFilter } from '../utils/common.js';
 import { getPostResponse } from '../utils/mongoose.js';
+import { generateErrorResponse } from '../utils/response.js';
 
 const generateFilter = ({ search, hashtag, username }) => {
   if (search) return generateRegexFilter('slug', search);
@@ -31,7 +32,7 @@ async function getBySlug(req, res) {
 
     const post = await Post.findOne({ slug }).lean();
     if (!post) {
-      return res.status(404).json({ error: 'post.notFound' });
+      return res.status(404).json(generateErrorResponse('post.notFound'));
     }
 
     const commentCount = await Comment.countDocuments({ postId: post._id });
@@ -53,11 +54,11 @@ async function getForEdit(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).json({ error: 'post.notFound' });
+      return res.status(404).json(generateErrorResponse('post.notFound'));
     }
 
     if (user.role !== Role.ADMIN && !post.authorId.equals(user._id)) {
-      return res.status(403).json({ error: 'post.notAllowedToEdit' });
+      return res.status(403).json(generateErrorResponse('post.notAllowedToEdit'));
     }
 
     res.send(post);
@@ -112,11 +113,11 @@ async function update(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).json({ error: 'post.notFound' });
+      return res.status(404).json(generateErrorResponse('post.notFound'));
     }
 
     if (!post.authorId.equals(user._id)) {
-      return res.status(403).json({ error: 'post.notAllowedToEdit' });
+      return res.status(403).json(generateErrorResponse('post.notAllowedToEdit'));
     }
 
     const updatedPost = await Post.findByIdAndUpdate(
@@ -138,11 +139,11 @@ async function remove(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).json({ error: 'post.notFound' });
+      return res.status(404).json(generateErrorResponse('post.notFound'));
     }
 
     if (user.role !== Role.ADMIN && !post.authorId.equals(user._id)) {
-      return res.status(403).json({ error: 'post.notAllowedToDelete' });
+      return res.status(403).json(generateErrorResponse('post.notAllowedToDelete'));
     }
 
     await Post.deleteOne({ _id: postId });
@@ -163,7 +164,7 @@ async function like(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).json({ error: 'post.notFound' });
+      return res.status(404).json(generateErrorResponse('post.notFound'));
     }
 
     const isLiked = post.likes.some((id) => id.equals(userId));
@@ -205,11 +206,11 @@ async function save(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).json({ error: 'post.notFound' });
+      return res.status(404).json(generateErrorResponse('post.notFound'));
     }
 
     if (user.saved.includes(postId)) {
-      return res.status(400).json({ error: 'post.saved' });
+      return res.status(400).json(generateErrorResponse('post.saved'));
     }
 
     await User.updateOne({ _id: user._id }, { $push: { saved: postId } });
@@ -227,11 +228,11 @@ async function unsave(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).json({ error: 'post.notFound' });
+      return res.status(404).json(generateErrorResponse('post.notFound'));
     }
 
     if (!user.saved.includes(postId)) {
-      return res.status(400).json({ error: 'post.notSaved' });
+      return res.status(400).json(generateErrorResponse('post.notSaved'));
     }
 
     await User.updateOne({ _id: user._id }, { $pull: { saved: postId } });

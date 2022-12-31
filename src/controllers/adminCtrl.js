@@ -1,4 +1,5 @@
 import { User } from '../models/index.js';
+import { generateErrorResponse } from '../utils/response.js';
 
 async function setRole(req, res) {
   try {
@@ -6,7 +7,7 @@ async function setRole(req, res) {
 
     const user = await User.findOne({ username }).lean();
     if (!user) {
-      return res.status(404).json({ error: 'user.notFound' });
+      return res.status(404).json(generateErrorResponse('user.notFound'));
     }
 
     await User.updateOne({ username }, { $set: { role } });

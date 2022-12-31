@@ -1,6 +1,7 @@
 import { Role } from '../constants/index.js';
 import { io } from '../index.js';
 import { Comment, Post } from '../models/index.js';
+import { generateErrorResponse } from '../utils/response.js';
 
 async function getByPostId(req, res) {
   try {
@@ -23,7 +24,7 @@ async function create(req, res) {
 
     const post = await Post.findById(postId).lean();
     if (!post) {
-      return res.status(404).json({ error: 'post.notFound' });
+      return res.status(404).json(generateErrorResponse('post.notFound'));
     }
 
     const newComment = new Comment({
@@ -70,11 +71,11 @@ async function edit(req, res) {
 
     const comment = await Comment.findById(commentId).lean();
     if (!comment) {
-      return res.status(404).json({ error: 'comment.notFound' });
+      return res.status(404).json(generateErrorResponse('comment.notFound'));
     }
 
     if (!comment.userId.equals(user._id)) {
-      return res.status(403).json({ error: 'comment.notAllowedToEdit' });
+      return res.status(403).json(generateErrorResponse('comment.notAllowedToEdit'));
     }
 
     const updatedComment = await Comment.findByIdAndUpdate(
@@ -98,11 +99,11 @@ async function remove(req, res) {
 
     const comment = await Comment.findById(commentId).lean();
     if (!comment) {
-      return res.status(404).json({ error: 'comment.notFound' });
+      return res.status(404).json(generateErrorResponse('comment.notFound'));
     }
 
     if (user.role !== Role.ADMIN && !comment.userId.equals(user._id)) {
-      return res.status(403).json({ error: 'comment.notAllowedToDelete' });
+      return res.status(403).json(generateErrorResponse('comment.notAllowedToDelete'));
     }
 
     await Comment.deleteOne({ _id: commentId });
@@ -125,7 +126,7 @@ async function like(req, res) {
 
     const comment = await Comment.findById(commentId).lean();
     if (!comment) {
-      return res.status(404).json({ error: 'comment.notFound' });
+      return res.status(404).json(generateErrorResponse('comment.notFound'));
     }
 
     const isLiked = comment.likes.some((id) => id.equals(userId));
