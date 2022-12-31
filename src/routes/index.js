@@ -1,7 +1,6 @@
 import { admin, auth } from '../middlewares/index.js';
 import adminRouter from './adminRoute.js';
 import authRouter from './authRoute.js';
-import chatRouter from './chatRoute.js';
 import commentRouter from './commentRoute.js';
 import postRouter from './postRoute.js';
 import userRouter from './userRoute.js';
@@ -11,7 +10,6 @@ function initRoutes(app) {
   app.use('/api/users', auth, userRouter);
   app.use('/api/posts', auth, postRouter);
   app.use('/api/comments', auth, commentRouter);
-  app.use('/api/chat', auth, chatRouter);
   app.use('/api/admin', admin, adminRouter);
 }
 
