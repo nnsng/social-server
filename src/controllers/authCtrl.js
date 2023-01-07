@@ -9,8 +9,6 @@ import { env, variables } from '../utils/env.js';
 import { generateAccessToken, generateActiveToken } from '../utils/generateToken.js';
 import { generateErrorResponse } from '../utils/response.js';
 
-const clientUrl = env(variables.clientUrl);
-
 async function login(req, res) {
   try {
     const { email, password } = req.body;
@@ -20,7 +18,8 @@ async function login(req, res) {
       return res.status(400).json(generateErrorResponse('auth.emailNotRegister'));
     }
 
-    loginUser(existedUser, password, res);
+    const data = { user: existedUser, password };
+    loginUser(data, req, res);
   } catch (error) {
     res.status(500).json(error);
   }
@@ -47,7 +46,7 @@ async function register(req, res) {
       return res.status(400).json(generateErrorResponse('auth.usernameExist'));
     }
 
-    registerUser(userInfo, res);
+    registerUser(userInfo, req, res);
   } catch (error) {
     res.status(500).json(error);
   }
@@ -70,7 +69,8 @@ async function googleLogin(req, res) {
     const existedUser = await User.findOne({ email });
 
     if (existedUser) {
-      loginUser(existedUser, '', res);
+      const data = { user: existedUser, password: '' };
+      loginUser(data, req, res);
     } else {
       const initUsername = slugify(name, {
         trim: true,
@@ -99,7 +99,7 @@ async function googleLogin(req, res) {
         active: false,
       };
 
-      registerUser(newUser, res);
+      registerUser(newUser, req, res);
     }
   } catch (error) {
     res.status(500).json(error);
@@ -134,6 +134,7 @@ async function active(req, res) {
 
 async function reactive(req, res) {
   try {
+    const { clientUrl } = req.query;
     const { _id } = req.body;
 
     if (!_id) {
@@ -185,6 +186,7 @@ async function changePassword(req, res) {
 
 async function forgotPassword(req, res) {
   try {
+    const { clientUrl } = req.query;
     const { email } = req.body;
 
     const user = await User.findOne({ email }).lean();
@@ -230,7 +232,7 @@ async function resetPassword(req, res) {
   }
 }
 
-async function loginUser(user, password, res) {
+async function loginUser({ user, password }, req, res) {
   try {
     if (password.length !== 0) {
       const validPassword = await bcrypt.compare(password, user.password);
@@ -252,8 +254,10 @@ async function loginUser(user, password, res) {
   }
 }
 
-async function registerUser(user, res) {
+async function registerUser(user, req, res) {
   try {
+    const { clientUrl } = req.query;
+
     const hashedPassword = await hashPassword(user.password);
 
     const newUser = new User({ ...user, password: hashedPassword });

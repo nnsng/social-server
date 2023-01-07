@@ -11,8 +11,6 @@ export function env(variable) {
 export const variables = {
   port: 'PORT',
 
-  clientUrl: 'CLIENT_URL',
-
   mongoUri: 'MONGODB_URI',
 
   activeTokenSecret: 'ACTIVE_TOKEN_SECRET',
