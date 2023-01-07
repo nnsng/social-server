@@ -1,7 +1,5 @@
-import Comment from '../models/Comment.js';
-import Post from '../models/Post.js';
-import User from '../models/User.js';
-import { generateErrorObject } from '../utils/error.js';
+import { User } from '../models/index.js';
+import { generateErrorResponse } from '../utils/response.js';
 
 async function setRole(req, res) {
   try {
@@ -9,14 +7,14 @@ async function setRole(req, res) {
 
     const user = await User.findOne({ username }).lean();
     if (!user) {
-      return res.status(404).send(generateErrorObject('userNotFound'));
+      return res.status(404).json(generateErrorResponse('user.notFound'));
     }
 
     await User.updateOne({ username }, { $set: { role } });
 
     res.sendStatus(200);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
@@ -24,7 +22,7 @@ async function updateDb(req, res) {
   try {
     res.sendStatus(200);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json(error);
   }
 }
 
