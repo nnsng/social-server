@@ -3,8 +3,6 @@
 ```
 PORT=<value>
 
-CLIENT_URL=<value>
-
 ACTIVE_TOKEN_SECRET=<value>
 
 ACCESS_TOKEN_SECRET=<value>
