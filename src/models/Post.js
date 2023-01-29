@@ -28,10 +28,6 @@ const postSchema = new mongoose.Schema(
       avatar: String,
       bio: String,
     },
-    hashtags: {
-      type: [String],
-      default: [],
-    },
     likes: {
       type: [mongoose.Schema.Types.ObjectId],
       default: [],

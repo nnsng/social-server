@@ -5,9 +5,8 @@ import { generateRegexFilter } from '../utils/common.js';
 import { getPostResponse } from '../utils/mongoose.js';
 import { generateErrorResponse } from '../utils/response.js';
 
-const generateFilter = ({ search, hashtag, username }) => {
+const generateFilter = ({ search, username }) => {
   if (search) return generateRegexFilter('slug', search);
-  if (hashtag) return { hashtags: hashtag };
   if (username) return generateRegexFilter('author.username', username);
   return {};
 };
@@ -15,9 +14,9 @@ const generateFilter = ({ search, hashtag, username }) => {
 async function getAll(req, res) {
   try {
     const user = req.user;
-    const { search, hashtag, username, ...params } = req.query;
+    const { search, username, ...params } = req.query;
 
-    const filter = generateFilter({ search, hashtag, username });
+    const filter = generateFilter({ search, username });
     const postResponse = await getPostResponse(filter, params, user);
 
     res.send(postResponse);
@@ -257,27 +256,6 @@ async function search(req, res) {
   }
 }
 
-async function getTopHashtags(req, res) {
-  try {
-    const postHashtags = await Post.find({}).select('hashtags').lean();
-    const quantities = postHashtags
-      .reduce((acc, cur) => [...acc, ...cur.hashtags], [])
-      .reduce((acc, cur) => {
-        acc[cur] = (acc[cur] || 0) + 1;
-        return acc;
-      }, {});
-
-    const topHashtags = Object.entries(quantities)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map((x) => x[0]);
-
-    res.send(topHashtags);
-  } catch (error) {
-    res.status(500).json(error);
-  }
-}
-
 const postCtrl = {
   getAll,
   getBySlug,
@@ -290,7 +268,6 @@ const postCtrl = {
   save,
   unsave,
   search,
-  getTopHashtags,
 };
 
 export default postCtrl;
