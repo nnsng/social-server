@@ -17,6 +17,10 @@ const postSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    description: {
+      type: String,
+      default: '',
+    },
     authorId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,

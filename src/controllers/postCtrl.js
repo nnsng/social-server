@@ -5,18 +5,16 @@ import { generateRegexFilter } from '../utils/common.js';
 import { getPostResponse } from '../utils/mongoose.js';
 import { generateErrorResponse } from '../utils/response.js';
 
-const generateFilter = ({ search, username }) => {
-  if (search) return generateRegexFilter('slug', search);
-  if (username) return generateRegexFilter('author.username', username);
-  return {};
-};
-
 async function getAll(req, res) {
   try {
     const user = req.user;
-    const { search, username, ...params } = req.query;
+    const { username, ...params } = req.query;
 
-    const filter = generateFilter({ search, username });
+    let filter = {};
+    if (username) {
+      filter = generateRegexFilter('author.username', username);
+    }
+
     const postResponse = await getPostResponse(filter, params, user);
 
     res.send(postResponse);
@@ -242,20 +240,6 @@ async function unsave(req, res) {
   }
 }
 
-async function search(req, res) {
-  try {
-    const { searchFor, searchTerm } = req.query;
-
-    const filter = generateFilter({ [searchFor]: searchTerm });
-
-    const postList = await Post.find(filter).sort({ createdAt: -1 }).lean();
-
-    return res.send(postList);
-  } catch (error) {
-    res.status(500).json(error);
-  }
-}
-
 const postCtrl = {
   getAll,
   getBySlug,
@@ -267,7 +251,6 @@ const postCtrl = {
   like,
   save,
   unsave,
-  search,
 };
 
 export default postCtrl;

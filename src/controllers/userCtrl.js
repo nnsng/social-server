@@ -153,26 +153,12 @@ async function unfollow(req, res) {
   }
 }
 
-async function search(req, res) {
-  try {
-    const { username } = req.query;
-
-    const filter = generateRegexFilter('username', username);
-    const userList = await User.find(filter).select('name username avatar').lean();
-
-    res.send(userList);
-  } catch (error) {
-    res.status(500).json(error);
-  }
-}
-
 const userCtrl = {
   getCurrentUser,
   getUserInfo,
   updateProfile,
   follow,
   unfollow,
-  search,
 };
 
 export default userCtrl;
