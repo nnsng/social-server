@@ -17,6 +17,10 @@ const postSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    description: {
+      type: String,
+      default: '',
+    },
     authorId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
@@ -27,10 +31,6 @@ const postSchema = new mongoose.Schema(
       username: String,
       avatar: String,
       bio: String,
-    },
-    hashtags: {
-      type: [String],
-      default: [],
     },
     likes: {
       type: [mongoose.Schema.Types.ObjectId],

@@ -1,4 +1,4 @@
-import { User } from '../models/index.js';
+import { Post, User } from '../models/index.js';
 import { generateErrorResponse } from '../utils/response.js';
 
 async function setRole(req, res) {

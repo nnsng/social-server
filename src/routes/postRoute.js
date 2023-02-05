@@ -3,11 +3,9 @@ import postCtrl from '../controllers/postCtrl.js';
 
 const postRouter = express.Router();
 
-postRouter.get('/search', postCtrl.search);
-
 postRouter.get('/saved', postCtrl.getSaved);
 
-postRouter.get('/get-top-hashtags', postCtrl.getTopHashtags);
+postRouter.get('/search', postCtrl.search);
 
 postRouter.get('/detail/:slug', postCtrl.getBySlug);
 
