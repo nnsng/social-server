@@ -11,6 +11,7 @@ export async function hashPassword(password) {
 }
 
 export function randomNumber(start, end) {
+  if (end < start) return 0;
   return Math.floor(Math.random() * (end - start)) + start;
 }
 

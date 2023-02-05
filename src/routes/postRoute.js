@@ -5,6 +5,8 @@ const postRouter = express.Router();
 
 postRouter.get('/saved', postCtrl.getSaved);
 
+postRouter.get('/search', postCtrl.search);
+
 postRouter.get('/detail/:slug', postCtrl.getBySlug);
 
 postRouter.post('/:postId/like', postCtrl.like);

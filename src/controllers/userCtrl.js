@@ -90,14 +90,10 @@ async function follow(req, res) {
     }
 
     await User.updateOne({ _id: currentUser._id }, { $push: { following: userId } });
-    const updatedCurrentUser = await User.findById(currentUser._id)
-      .select('-password -saved')
-      .lean();
+    const updatedCurrentUser = await User.findById(currentUser._id).select('following').lean();
 
     await User.updateOne({ _id: userId }, { $push: { followers: currentUser._id } });
-    const updatedUser = await User.findById(userId)
-      .select('name avatar username bio following followers')
-      .lean();
+    const updatedUser = await User.findById(userId).select('followers').lean();
 
     io.to(`${userId}`).emit('notify', {
       type: 'follow',
@@ -111,8 +107,7 @@ async function follow(req, res) {
       createdAt: Date.now(),
     });
 
-    await mapFollowUserId(updatedCurrentUser);
-    await mapFollowUserId(updatedUser);
+    await mapFollowUserId(updatedCurrentUser, updatedUser);
 
     res.send({ currentUser: updatedCurrentUser, selectedUser: updatedUser });
   } catch (error) {
@@ -135,19 +130,26 @@ async function unfollow(req, res) {
     }
 
     await User.updateOne({ _id: currentUser._id }, { $pull: { following: userId } });
-    const updatedCurrentUser = await User.findById(currentUser._id)
-      .select('-password -saved')
-      .lean();
+    const updatedCurrentUser = await User.findById(currentUser._id).select('following').lean();
 
     await User.updateOne({ _id: userId }, { $pull: { followers: currentUser._id } });
-    const updatedUser = await User.findById(userId)
-      .select('name avatar username bio following followers')
-      .lean();
+    const updatedUser = await User.findById(userId).select('followers').lean();
 
-    await mapFollowUserId(updatedCurrentUser);
-    await mapFollowUserId(updatedUser);
+    await mapFollowUserId(updatedCurrentUser, updatedUser);
 
     res.send({ currentUser: updatedCurrentUser, selectedUser: updatedUser });
+  } catch (error) {
+    res.status(500).json(error);
+  }
+}
+
+async function search(req, res) {
+  try {
+    const { q } = req.query;
+
+    const filter = generateRegexFilter('username', q);
+    const userList = await User.find(filter).select('name username avatar bio').lean();
+    return res.send(userList);
   } catch (error) {
     res.status(500).json(error);
   }
@@ -159,6 +161,7 @@ const userCtrl = {
   updateProfile,
   follow,
   unfollow,
+  search,
 };
 
 export default userCtrl;

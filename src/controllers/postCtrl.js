@@ -240,6 +240,18 @@ async function unsave(req, res) {
   }
 }
 
+async function search(req, res) {
+  try {
+    const { q } = req.query;
+
+    const filter = generateRegexFilter('slug', q);
+    const postList = await Post.find(filter).sort({ createdAt: -1 }).lean();
+    return res.send(postList);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+}
+
 const postCtrl = {
   getAll,
   getBySlug,
@@ -251,6 +263,7 @@ const postCtrl = {
   like,
   save,
   unsave,
+  search,
 };
 
 export default postCtrl;

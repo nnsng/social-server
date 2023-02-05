@@ -33,16 +33,20 @@ export async function getPostResponse(filter, params, user) {
   }
 }
 
-export async function mapFollowUserId(user) {
+export async function mapFollowUserId(...users) {
   try {
-    for await (const key of ['following', 'followers']) {
-      user[key] = (
-        await Promise.all(
-          user[key].map(async (id) => {
-            return await User.findById(id).select('name').lean();
-          })
-        )
-      ).reverse();
+    for await (const user of users) {
+      for await (const key of ['following', 'followers']) {
+        if (!user[key]) continue;
+
+        user[key] = (
+          await Promise.all(
+            user[key].map(async (id) => {
+              return await User.findById(id).select('name username').lean();
+            })
+          )
+        ).reverse();
+      }
     }
   } catch (error) {
     throw error;
