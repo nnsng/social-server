@@ -16,7 +16,7 @@ export async function admin(req, res, next) {
       return res.status(403).json(generateErrorResponse('auth.invalidAuth'));
     }
 
-    const user = await User.findOne({ _id: decoded._id }).select('-password').lean();
+    const user = await User.findById(decoded._id).select('-password').lean();
     if (!user) {
       return res.status(404).json(generateErrorResponse('user.notFound'));
     }

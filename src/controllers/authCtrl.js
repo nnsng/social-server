@@ -198,7 +198,7 @@ async function forgotPassword(req, res) {
 
     await sendMail({
       mailto: email,
-      url: `${clientUrl}/reset-password?token=${activeToken}`,
+      url: `${clientUrl}/password?token=${activeToken}`,
       type: sendMailTypes.resetPassword,
     });
 

@@ -16,7 +16,7 @@ export async function auth(req, res, next) {
       return res.status(401).json(generateErrorResponse('auth.invalidAuth'));
     }
 
-    const user = await User.findOne({ _id: decoded._id }).lean();
+    const user = await User.findById(decoded._id).lean();
     if (!user) {
       return res.status(404).json(generateErrorResponse('user.notFound'));
     }

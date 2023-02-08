@@ -13,6 +13,6 @@ userRouter.post('/follow', userCtrl.follow);
 
 userRouter.post('/unfollow', userCtrl.unfollow);
 
-userRouter.get('/:username', userCtrl.getUserInfo);
+userRouter.get('/info/:username', userCtrl.getUserInfo);
 
 export default userRouter;

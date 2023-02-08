@@ -20,6 +20,7 @@ async function setRole(req, res) {
 
 async function updateDb(req, res) {
   try {
+    await User.updateOne({ email: 'sang@1social.com' }, { following: [] });
     res.sendStatus(200);
   } catch (error) {
     res.status(500).json(error);

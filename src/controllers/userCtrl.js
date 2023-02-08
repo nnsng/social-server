@@ -145,9 +145,23 @@ async function unfollow(req, res) {
 
 async function search(req, res) {
   try {
-    const { q } = req.query;
+    const user = req.user;
+    const { q, followed } = req.query;
 
-    const filter = generateRegexFilter('username', q);
+    let idFilter;
+
+    if (followed === 'true') {
+      idFilter = { $in: user.following };
+    }
+
+    if (followed === 'false') {
+      idFilter = { $nin: user.following, $ne: user._id };
+    }
+
+    const filter = {
+      username: { $regex: new RegExp(q), $options: 'i' },
+      ...(idFilter ? { _id: idFilter } : {}),
+    };
     const userList = await User.find(filter).select('name username avatar bio').lean();
     return res.send(userList);
   } catch (error) {
