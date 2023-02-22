@@ -11,22 +11,24 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "start:pm2": "pm2 start src/index.js",
-    "dev:pm2": "pm2 start src/index.js --watch"
+    "dev:pm2": "pm2 start src/index.js --watch",
+    "update-pkg": "ncu -u"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "google-auth-library": "^8.6.0",
-    "jsonwebtoken": "^8.5.1",
-    "mongoose": "^6.7.1",
+    "google-auth-library": "^8.7.0",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^6.9.2",
     "mongoose-slug-updater": "^3.3.0",
-    "nodemailer": "^6.8.0",
+    "nodemailer": "^6.9.1",
     "slugify": "^1.6.5",
-    "socket.io": "^4.5.3"
+    "socket.io": "^4.6.1"
   },
   "devDependencies": {
-    "nodemon": "^2.0.20"
+    "nodemon": "^2.0.20",
+    "npm-check-updates": "^16.7.5"
   }
 }
