@@ -190,7 +190,8 @@ async function like(req, res) {
       });
     }
 
-    res.send(updatedPost);
+    const { likes, likeCount } = updatedPost;
+    res.send({ likes, likeCount });
   } catch (error) {
     res.status(500).json(error);
   }

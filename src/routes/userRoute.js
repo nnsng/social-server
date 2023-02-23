@@ -7,7 +7,7 @@ userRouter.get('/me', userCtrl.getCurrentUser);
 
 userRouter.get('/search', userCtrl.search);
 
-userRouter.post('/update-profile', userCtrl.updateProfile);
+userRouter.post('/update', userCtrl.updateCurrentUser);
 
 userRouter.post('/follow', userCtrl.follow);
 
