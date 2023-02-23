@@ -40,7 +40,7 @@ async function getUserInfo(req, res) {
   }
 }
 
-async function updateProfile(req, res) {
+async function updateCurrentUser(req, res) {
   try {
     const user = req.user;
     const { name, email, username, avatar, bio } = req.body;
@@ -172,7 +172,7 @@ async function search(req, res) {
 const userCtrl = {
   getCurrentUser,
   getUserInfo,
-  updateProfile,
+  updateCurrentUser,
   follow,
   unfollow,
   search,
