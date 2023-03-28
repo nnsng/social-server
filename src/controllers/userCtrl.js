@@ -97,7 +97,7 @@ async function follow(req, res) {
     const newNotification = new Notification({
       userId: userId,
       type: 'follow',
-      actionedUser: {
+      actionUser: {
         _id: currentUser._id,
         name: currentUser.name,
         username: currentUser.username,
@@ -144,7 +144,7 @@ async function unfollow(req, res) {
     await Notification.deleteOne({
       userId: userId,
       type: 'follow',
-      'actionedUser._id': currentUser._id,
+      'actionUser._id': currentUser._id,
     });
 
     res.send({ currentUser: updatedCurrentUser, selectedUser: updatedUser });

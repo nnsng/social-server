@@ -176,7 +176,7 @@ async function like(req, res) {
       await Notification.deleteOne({
         userId: post.authorId,
         type: 'like',
-        'actionedUser._id': user._id,
+        'actionUser._id': user._id,
         'moreInfo.post._id': post._id,
       });
     }
@@ -185,7 +185,7 @@ async function like(req, res) {
       const newNotification = new Notification({
         userId: post.authorId,
         type: 'like',
-        actionedUser: {
+        actionUser: {
           _id: user._id,
           name: user.name,
           username: user.username,

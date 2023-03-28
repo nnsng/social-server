@@ -44,7 +44,7 @@ async function create(req, res) {
       const existedNotification = await Notification.findOne({
         userId: post.authorId,
         type: 'comment',
-        'actionedUser._id': user._id,
+        'actionUser._id': user._id,
         'moreInfo.post._id': post._id,
       }).lean();
 
@@ -52,7 +52,7 @@ async function create(req, res) {
         const newNotification = new Notification({
           userId: post.authorId,
           type: 'comment',
-          actionedUser: {
+          actionUser: {
             _id: user._id,
             name: user.name,
             username: user.username,
@@ -135,7 +135,7 @@ async function remove(req, res) {
     await Notification.deleteOne({
       userId: post.authorId,
       type: 'comment',
-      'actionedUser._id': user._id,
+      'actionUser._id': user._id,
       'moreInfo.post._id': comment.postId,
     });
 
