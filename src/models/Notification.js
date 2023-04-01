@@ -15,6 +15,7 @@ const notificationSchema = new mongoose.Schema(
         _id: mongoose.Schema.Types.ObjectId,
         name: String,
         username: String,
+        avatar: String,
       },
       require: true,
     },

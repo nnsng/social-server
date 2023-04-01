@@ -5,6 +5,6 @@ const notificationRouter = express.Router();
 
 notificationRouter.get('/', notificationCtrl.getAll);
 
-notificationRouter.post('/read', notificationCtrl.setRead);
+// notificationRouter.post('/read', notificationCtrl.setRead);
 
 export default notificationRouter;

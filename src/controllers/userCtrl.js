@@ -101,6 +101,7 @@ async function follow(req, res) {
         _id: currentUser._id,
         name: currentUser.name,
         username: currentUser.username,
+        avatar: user.avatar,
       },
     });
     await newNotification.save();

@@ -56,6 +56,7 @@ async function create(req, res) {
             _id: user._id,
             name: user.name,
             username: user.username,
+            avatar: user.avatar,
           },
           moreInfo: {
             post: {
