@@ -1,6 +1,6 @@
 import { Notification } from '../models/index.js';
 
-async function getAll(req, res) {
+const getAll = async (req, res) => {
   try {
     const user = req.user;
 
@@ -27,9 +27,9 @@ async function getAll(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-// async function setRead(req, res) {
+// const setRead = async (req, res) => {
 //   try {
 //     const { data } = req.body;
 

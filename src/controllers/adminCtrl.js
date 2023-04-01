@@ -1,7 +1,7 @@
 import { Notification, User } from '../models/index.js';
 import { generateErrorResponse } from '../utils/response.js';
 
-async function setRole(req, res) {
+const setRole = async (req, res) => {
   try {
     const { username, role } = req.body;
 
@@ -16,9 +16,9 @@ async function setRole(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function updateDb(req, res) {
+const updateDb = async (req, res) => {
   try {
     await Notification.deleteMany({});
     await User.updateMany({}, { $set: { following: [], followers: [] } });
@@ -26,7 +26,7 @@ async function updateDb(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
 const adminCtrl = {
   setRole,

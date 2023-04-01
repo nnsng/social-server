@@ -3,7 +3,7 @@ import { Comment, Notification, Post, User } from '../models/index.js';
 import { mapFollowUserId } from '../utils/mongoose.js';
 import { generateErrorResponse } from '../utils/response.js';
 
-async function getCurrentUser(req, res) {
+const getCurrentUser = async (req, res) => {
   try {
     const { _id } = req.user;
 
@@ -18,9 +18,9 @@ async function getCurrentUser(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function getUserInfo(req, res) {
+const getUserInfo = async (req, res) => {
   try {
     const { username } = req.params;
 
@@ -37,9 +37,9 @@ async function getUserInfo(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function updateCurrentUser(req, res) {
+const updateCurrentUser = async (req, res) => {
   try {
     const user = req.user;
     const { name, email, username, avatar, bio } = req.body;
@@ -72,9 +72,9 @@ async function updateCurrentUser(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function follow(req, res) {
+const follow = async (req, res) => {
   try {
     const currentUser = req.user;
     const { userId } = req.body;
@@ -118,9 +118,9 @@ async function follow(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function unfollow(req, res) {
+const unfollow = async (req, res) => {
   try {
     const currentUser = req.user;
     const { userId } = req.body;
@@ -152,9 +152,9 @@ async function unfollow(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function search(req, res) {
+const search = async (req, res) => {
   try {
     const user = req.user;
     const { q, followed } = req.query;
@@ -178,7 +178,7 @@ async function search(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
 const userCtrl = {
   getCurrentUser,

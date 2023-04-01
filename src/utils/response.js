@@ -32,7 +32,7 @@ const errors = {
   },
 };
 
-export function generateErrorResponse(name) {
+export const generateErrorResponse = (name) => {
   const keys = name.split('.');
 
   const message = keys.reduce((acc, key) => acc[key], errors);
@@ -41,4 +41,4 @@ export function generateErrorResponse(name) {
     name,
     message: message ?? 'Something went wrong',
   };
-}
+};

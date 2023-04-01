@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { User } from '../models/index.js';
 import { env, variables } from '../utils/env.js';
 
-export async function auth(req, res, next) {
+export const auth = async (req, res, next) => {
   try {
     const headerAuthorization = req.header('Authorization');
     if (!headerAuthorization) {
@@ -27,4 +27,4 @@ export async function auth(req, res, next) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
