@@ -1,6 +1,6 @@
 import { Post, User } from '../models/index.js';
 
-export async function getPostResponse(filter, params, user) {
+export const getPostResponse = async (filter, params, user) => {
   try {
     const { limit, page, sort, order, by } = params || {};
 
@@ -31,9 +31,9 @@ export async function getPostResponse(filter, params, user) {
   } catch (error) {
     throw error;
   }
-}
+};
 
-export async function mapFollowUserId(...users) {
+export const mapFollowUserId = async (...users) => {
   try {
     for await (const user of users) {
       for await (const key of ['following', 'followers']) {
@@ -51,4 +51,4 @@ export async function mapFollowUserId(...users) {
   } catch (error) {
     throw error;
   }
-}
+};

@@ -5,7 +5,7 @@ import { generateRegexFilter } from '../utils/common.js';
 import { getPostResponse } from '../utils/mongoose.js';
 import { generateErrorResponse } from '../utils/response.js';
 
-async function getAll(req, res) {
+const getAll = async (req, res) => {
   try {
     const user = req.user;
     const { username, ...params } = req.query;
@@ -21,9 +21,9 @@ async function getAll(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function getBySlug(req, res) {
+const getBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
 
@@ -42,9 +42,9 @@ async function getBySlug(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function getForEdit(req, res) {
+const getForEdit = async (req, res) => {
   try {
     const { postId } = req.params;
     const user = req.user;
@@ -62,9 +62,9 @@ async function getForEdit(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function getSaved(req, res) {
+const getSaved = async (req, res) => {
   try {
     const params = req.query;
     const { saved } = req.user;
@@ -82,9 +82,9 @@ async function getSaved(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function create(req, res) {
+const create = async (req, res) => {
   try {
     const formData = req.body;
     const { _id, name, username, avatar, bio } = req.user;
@@ -100,9 +100,9 @@ async function create(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function update(req, res) {
+const update = async (req, res) => {
   try {
     const { postId } = req.params;
     const formData = req.body;
@@ -127,9 +127,9 @@ async function update(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function remove(req, res) {
+const remove = async (req, res) => {
   try {
     const { postId } = req.params;
     const user = req.user;
@@ -151,9 +151,9 @@ async function remove(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function like(req, res) {
+const like = async (req, res) => {
   try {
     const { postId } = req.params;
     const user = req.user;
@@ -212,9 +212,9 @@ async function like(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function save(req, res) {
+const save = async (req, res) => {
   try {
     const { postId } = req.params;
     const user = req.user;
@@ -234,9 +234,9 @@ async function save(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function unsave(req, res) {
+const unsave = async (req, res) => {
   try {
     const { postId } = req.params;
     const user = req.user;
@@ -256,9 +256,9 @@ async function unsave(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function search(req, res) {
+const search = async (req, res) => {
   try {
     const { q } = req.query;
 
@@ -268,7 +268,7 @@ async function search(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
 const postCtrl = {
   getAll,

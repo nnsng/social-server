@@ -2,11 +2,11 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-export function env(variable) {
+export const env = (variable) => {
   const value = process.env[variable];
   if (!value) throw new Error(`Env ${variable} is not defined.`);
   return value;
-}
+};
 
 export const variables = {
   port: 'PORT',

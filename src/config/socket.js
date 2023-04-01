@@ -1,6 +1,6 @@
 import { Server } from 'socket.io';
 
-function socketServer(socket) {
+const socketServer = (socket) => {
   // user open website
   socket.on('joinSocial', ({ userId }) => {
     socket.join(userId);
@@ -21,9 +21,9 @@ function socketServer(socket) {
   socket.on('disconnect', () => {
     // console.log(socket.id + ' disconnected');
   });
-}
+};
 
-export function connectToSocket(server) {
+export const connectToSocket = (server) => {
   const io = new Server(server, {
     cors: {
       origin: '*',
@@ -32,4 +32,4 @@ export function connectToSocket(server) {
 
   io.on('connection', socketServer);
   return io;
-}
+};
