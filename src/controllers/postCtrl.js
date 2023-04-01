@@ -1,6 +1,6 @@
 import { Role } from '../constants/index.js';
 import { io } from '../index.js';
-import { Comment, Post, User } from '../models/index.js';
+import { Comment, Notification, Post, User } from '../models/index.js';
 import { generateRegexFilter } from '../utils/common.js';
 import { getPostResponse } from '../utils/mongoose.js';
 import { generateErrorResponse } from '../utils/response.js';
@@ -157,36 +157,53 @@ async function like(req, res) {
   try {
     const { postId } = req.params;
     const user = req.user;
-    const { _id: userId } = user;
 
     const post = await Post.findById(postId).lean();
     if (!post) {
       return res.status(404).json(generateErrorResponse('post.notFound'));
     }
 
-    const isLiked = post.likes.some((id) => id.equals(userId));
+    const isLiked = post.likes.some((id) => id.equals(user._id));
     const update = isLiked
-      ? { $pull: { likes: userId }, $inc: { likeCount: -1 } }
-      : { $push: { likes: userId }, $inc: { likeCount: 1 } };
+      ? { $pull: { likes: user._id }, $inc: { likeCount: -1 } }
+      : { $push: { likes: user._id }, $inc: { likeCount: 1 } };
 
     const updatedPost = await Post.findByIdAndUpdate(postId, update, {
       new: true,
     }).lean();
 
-    if (!isLiked && !userId.equals(post.authorId)) {
-      io.to(`${post.authorId}`).emit('notify', {
+    if (isLiked) {
+      await Notification.deleteOne({
+        userId: post.authorId,
         type: 'like',
-        post: {
-          _id: post._id,
-          slug: post.slug,
-        },
-        user: {
+        'actionUser._id': user._id,
+        'moreInfo.post._id': post._id,
+      });
+    }
+
+    if (!isLiked && !user._id.equals(post.authorId)) {
+      const newNotification = new Notification({
+        userId: post.authorId,
+        type: 'like',
+        actionUser: {
+          _id: user._id,
           name: user.name,
           username: user.username,
           avatar: user.avatar,
         },
-        read: false,
-        createdAt: Date.now(),
+        moreInfo: {
+          post: {
+            _id: post._id,
+            slug: post.slug,
+          },
+        },
+      });
+      await newNotification.save();
+
+      io.to(`${post.authorId}`).emit('notify', {
+        type: 'like',
+        user: user.name,
+        url: `/post/${post.slug}`,
       });
     }
 

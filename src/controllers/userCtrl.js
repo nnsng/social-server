@@ -1,6 +1,5 @@
 import { io } from '../index.js';
-import { Comment, Post, User } from '../models/index.js';
-import { generateRegexFilter } from '../utils/common.js';
+import { Comment, Notification, Post, User } from '../models/index.js';
 import { mapFollowUserId } from '../utils/mongoose.js';
 import { generateErrorResponse } from '../utils/response.js';
 
@@ -95,16 +94,22 @@ async function follow(req, res) {
     await User.updateOne({ _id: userId }, { $push: { followers: currentUser._id } });
     const updatedUser = await User.findById(userId).select('followers').lean();
 
-    io.to(`${userId}`).emit('notify', {
+    const newNotification = new Notification({
+      userId: userId,
       type: 'follow',
-      post: {},
-      user: {
+      actionUser: {
+        _id: currentUser._id,
         name: currentUser.name,
         username: currentUser.username,
-        avatar: currentUser.avatar,
+        avatar: user.avatar,
       },
-      read: false,
-      createdAt: Date.now(),
+    });
+    await newNotification.save();
+
+    io.to(`${userId}`).emit('notify', {
+      type: 'follow',
+      user: currentUser.name,
+      url: `/profile/${currentUser.username}`,
     });
 
     await mapFollowUserId(updatedCurrentUser, updatedUser);
@@ -136,6 +141,12 @@ async function unfollow(req, res) {
     const updatedUser = await User.findById(userId).select('followers').lean();
 
     await mapFollowUserId(updatedCurrentUser, updatedUser);
+
+    await Notification.deleteOne({
+      userId: userId,
+      type: 'follow',
+      'actionUser._id': currentUser._id,
+    });
 
     res.send({ currentUser: updatedCurrentUser, selectedUser: updatedUser });
   } catch (error) {

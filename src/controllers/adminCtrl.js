@@ -1,4 +1,4 @@
-import { Post, User } from '../models/index.js';
+import { Notification, User } from '../models/index.js';
 import { generateErrorResponse } from '../utils/response.js';
 
 async function setRole(req, res) {
@@ -20,7 +20,8 @@ async function setRole(req, res) {
 
 async function updateDb(req, res) {
   try {
-    await User.updateOne({ email: 'sang@1social.com' }, { following: [] });
+    await Notification.deleteMany({});
+    await User.updateMany({}, { $set: { following: [], followers: [] } });
     res.sendStatus(200);
   } catch (error) {
     res.status(500).json(error);

@@ -23,7 +23,7 @@ initRoutes(app);
 
 // Database
 const URI = env(variables.mongoUri);
-connectToDatabase(URI);
+await connectToDatabase(URI);
 
 // Server listening
 const PORT = env(variables.port) || 4000;
