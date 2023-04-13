@@ -8,7 +8,7 @@ import { env, variables } from './utils/env.js';
 
 const app = express();
 
-// Middlewares
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
