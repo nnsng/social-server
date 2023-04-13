@@ -1,4 +1,4 @@
-import { admin, auth } from '../middlewares/index.js';
+import { admin, auth } from '../middleware/index.js';
 import adminRouter from './adminRoute.js';
 import authRouter from './authRoute.js';
 import commentRouter from './commentRoute.js';
