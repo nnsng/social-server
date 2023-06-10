@@ -157,7 +157,7 @@ const unfollow = async (req, res) => {
 const search = async (req, res) => {
   try {
     const user = req.user;
-    const { q, followed } = req.query;
+    const { q, followed = 'false' } = req.query;
 
     let idFilter;
 
