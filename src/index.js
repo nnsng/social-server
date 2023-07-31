@@ -8,7 +8,7 @@ import { env, variables } from './utils/env.js';
 
 const app = express();
 
-// Middlewares
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
@@ -23,7 +23,7 @@ initRoutes(app);
 
 // Database
 const URI = env(variables.mongoUri);
-connectToDatabase(URI);
+await connectToDatabase(URI);
 
 // Server listening
 const PORT = env(variables.port) || 4000;

@@ -26,11 +26,14 @@ const postSchema = new mongoose.Schema(
       required: true,
     },
     author: {
-      _id: mongoose.Schema.Types.ObjectId,
-      name: String,
-      username: String,
-      avatar: String,
-      bio: String,
+      type: {
+        _id: mongoose.Schema.Types.ObjectId,
+        name: String,
+        username: String,
+        avatar: String,
+        bio: String,
+      },
+      require: true,
     },
     likes: {
       type: [mongoose.Schema.Types.ObjectId],

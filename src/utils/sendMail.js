@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { env, variables } from '../utils/env.js';
+import { env, variables } from './env.js';
 
 const senderMailAddress = env(variables.senderEmailAddress);
 const senderMailPassword = env(variables.senderEmailPassword);
@@ -9,7 +9,7 @@ export const sendMailTypes = {
   resetPassword: 'resetPassword',
 };
 
-async function sendMail({ mailto, url, type }) {
+const sendMail = async ({ mailto, url, type }) => {
   try {
     const transport = nodemailer.createTransport({
       service: 'gmail',
@@ -35,9 +35,9 @@ async function sendMail({ mailto, url, type }) {
   } catch (error) {
     console.log('sendMail', error);
   }
-}
+};
 
-function generateHtml(url, type) {
+const generateHtml = (url, type) => {
   const isActive = type === sendMailTypes.activeAccount;
 
   const title = isActive ? 'Welcome to 1social.' : 'Reset password';
@@ -66,6 +66,6 @@ function generateHtml(url, type) {
       <a href=${url} style="text-decoration: underline; color: ${mainColor}">${url}</a>
     </div>
   `;
-}
+};
 
 export default sendMail;

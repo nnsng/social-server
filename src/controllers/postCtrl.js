@@ -1,11 +1,11 @@
 import { Role } from '../constants/index.js';
 import { io } from '../index.js';
-import { Comment, Post, User } from '../models/index.js';
+import { Comment, Notification, Post, User } from '../models/index.js';
 import { generateRegexFilter } from '../utils/common.js';
 import { getPostResponse } from '../utils/mongoose.js';
 import { generateErrorResponse } from '../utils/response.js';
 
-async function getAll(req, res) {
+const getAll = async (req, res) => {
   try {
     const user = req.user;
     const { username, ...params } = req.query;
@@ -21,9 +21,9 @@ async function getAll(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function getBySlug(req, res) {
+const getBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
 
@@ -42,9 +42,9 @@ async function getBySlug(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function getForEdit(req, res) {
+const getForEdit = async (req, res) => {
   try {
     const { postId } = req.params;
     const user = req.user;
@@ -62,9 +62,9 @@ async function getForEdit(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function getSaved(req, res) {
+const getSaved = async (req, res) => {
   try {
     const params = req.query;
     const { saved } = req.user;
@@ -82,9 +82,9 @@ async function getSaved(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function create(req, res) {
+const create = async (req, res) => {
   try {
     const formData = req.body;
     const { _id, name, username, avatar, bio } = req.user;
@@ -100,9 +100,9 @@ async function create(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function update(req, res) {
+const update = async (req, res) => {
   try {
     const { postId } = req.params;
     const formData = req.body;
@@ -127,9 +127,9 @@ async function update(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function remove(req, res) {
+const remove = async (req, res) => {
   try {
     const { postId } = req.params;
     const user = req.user;
@@ -151,52 +151,70 @@ async function remove(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function like(req, res) {
+const like = async (req, res) => {
   try {
     const { postId } = req.params;
     const user = req.user;
-    const { _id: userId } = user;
 
     const post = await Post.findById(postId).lean();
     if (!post) {
       return res.status(404).json(generateErrorResponse('post.notFound'));
     }
 
-    const isLiked = post.likes.some((id) => id.equals(userId));
+    const isLiked = post.likes.some((id) => id.equals(user._id));
     const update = isLiked
-      ? { $pull: { likes: userId }, $inc: { likeCount: -1 } }
-      : { $push: { likes: userId }, $inc: { likeCount: 1 } };
+      ? { $pull: { likes: user._id }, $inc: { likeCount: -1 } }
+      : { $push: { likes: user._id }, $inc: { likeCount: 1 } };
 
     const updatedPost = await Post.findByIdAndUpdate(postId, update, {
       new: true,
     }).lean();
 
-    if (!isLiked && !userId.equals(post.authorId)) {
-      io.to(`${post.authorId}`).emit('notify', {
+    if (isLiked) {
+      await Notification.deleteOne({
+        userId: post.authorId,
         type: 'like',
-        post: {
-          _id: post._id,
-          slug: post.slug,
-        },
-        user: {
+        'actionUser._id': user._id,
+        'moreInfo.post._id': post._id,
+      });
+    }
+
+    if (!isLiked && !user._id.equals(post.authorId)) {
+      const newNotification = new Notification({
+        userId: post.authorId,
+        type: 'like',
+        actionUser: {
+          _id: user._id,
           name: user.name,
           username: user.username,
           avatar: user.avatar,
         },
-        read: false,
-        createdAt: Date.now(),
+        moreInfo: {
+          post: {
+            _id: post._id,
+            slug: post.slug,
+          },
+        },
+      });
+      await newNotification.save();
+
+      io.to(`${post.authorId}`).emit('notify', {
+        type: 'like',
+        user: user.name,
+        url: `/post/${post.slug}`,
       });
     }
 
-    res.send(updatedPost);
+    const { likes, likeCount } = updatedPost;
+    res.send({ likes, likeCount });
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function save(req, res) {
+const save = async (req, res) => {
   try {
     const { postId } = req.params;
     const user = req.user;
@@ -216,9 +234,9 @@ async function save(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function unsave(req, res) {
+const unsave = async (req, res) => {
   try {
     const { postId } = req.params;
     const user = req.user;
@@ -238,9 +256,9 @@ async function unsave(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function search(req, res) {
+const search = async (req, res) => {
   try {
     const { q } = req.query;
 
@@ -250,7 +268,7 @@ async function search(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
 const postCtrl = {
   getAll,

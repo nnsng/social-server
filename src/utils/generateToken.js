@@ -1,10 +1,10 @@
 import jwt from 'jsonwebtoken';
 import { env, variables } from './env.js';
 
-export function generateActiveToken(payload) {
+export const generateActiveToken = (payload) => {
   return jwt.sign(payload, env(variables.activeTokenSecret), { expiresIn: '5m' });
-}
+};
 
-export function generateAccessToken(payload) {
+export const generateAccessToken = (payload) => {
   return jwt.sign(payload, env(variables.accessTokenSecret), { expiresIn: '7d' });
-}
+};

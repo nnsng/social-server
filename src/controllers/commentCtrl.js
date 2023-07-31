@@ -1,9 +1,9 @@
 import { Role } from '../constants/index.js';
 import { io } from '../index.js';
-import { Comment, Post } from '../models/index.js';
+import { Comment, Notification, Post } from '../models/index.js';
 import { generateErrorResponse } from '../utils/response.js';
 
-async function getByPostId(req, res) {
+const getByPostId = async (req, res) => {
   try {
     const { postId } = req.query;
 
@@ -13,9 +13,9 @@ async function getByPostId(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function create(req, res) {
+const create = async (req, res) => {
   try {
     const formData = req.body;
     const { postId } = formData;
@@ -41,19 +41,37 @@ async function create(req, res) {
     });
 
     if (!user._id.equals(post.authorId)) {
+      const existedNotification = await Notification.findOne({
+        userId: post.authorId,
+        type: 'comment',
+        'actionUser._id': user._id,
+        'moreInfo.post._id': post._id,
+      }).lean();
+
+      if (!existedNotification) {
+        const newNotification = new Notification({
+          userId: post.authorId,
+          type: 'comment',
+          actionUser: {
+            _id: user._id,
+            name: user.name,
+            username: user.username,
+            avatar: user.avatar,
+          },
+          moreInfo: {
+            post: {
+              _id: post._id,
+              slug: post.slug,
+            },
+          },
+        });
+        await newNotification.save();
+      }
+
       io.to(`${post.authorId}`).emit('notify', {
         type: 'comment',
-        post: {
-          _id: post._id,
-          slug: post.slug,
-        },
-        user: {
-          name: user.name,
-          username: user.username,
-          avatar: user.avatar,
-        },
-        read: false,
-        createdAt: Date.now(),
+        user: user.name,
+        url: `/post/${post.slug}`,
       });
     }
 
@@ -61,9 +79,9 @@ async function create(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function edit(req, res) {
+const edit = async (req, res) => {
   try {
     const { commentId } = req.params;
     const formData = req.body;
@@ -90,9 +108,9 @@ async function edit(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function remove(req, res) {
+const remove = async (req, res) => {
   try {
     const { commentId } = req.params;
     const user = req.user;
@@ -113,13 +131,22 @@ async function remove(req, res) {
 
     io.to(`${comment.postId}`).emit('removeComment', { id: comment._id });
 
+    const post = await Post.findById(comment.postId).select('authorId').lean();
+
+    await Notification.deleteOne({
+      userId: post.authorId,
+      type: 'comment',
+      'actionUser._id': user._id,
+      'moreInfo.post._id': comment.postId,
+    });
+
     res.sendStatus(200);
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function like(req, res) {
+const like = async (req, res) => {
   try {
     const { commentId } = req.params;
     const { _id: userId } = req.user;
@@ -140,7 +167,7 @@ async function like(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
 const commentCtrl = {
   getByPostId,

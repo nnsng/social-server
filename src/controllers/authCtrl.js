@@ -2,14 +2,14 @@ import bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import slugify from 'slugify';
-import sendMail, { sendMailTypes } from '../config/sendMail.js';
 import { User } from '../models/index.js';
 import { hashPassword, randomNumber } from '../utils/common.js';
 import { env, variables } from '../utils/env.js';
 import { generateAccessToken, generateActiveToken } from '../utils/generateToken.js';
 import { generateErrorResponse } from '../utils/response.js';
+import sendMail, { sendMailTypes } from '../utils/sendMail.js';
 
-async function login(req, res) {
+const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -23,9 +23,9 @@ async function login(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function register(req, res) {
+const register = async (req, res) => {
   try {
     const { email, password, name, username } = req.body;
 
@@ -50,9 +50,9 @@ async function register(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function googleLogin(req, res) {
+const googleLogin = async (req, res) => {
   try {
     const { idToken } = req.body;
 
@@ -104,9 +104,9 @@ async function googleLogin(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function active(req, res) {
+const active = async (req, res) => {
   try {
     const { token } = req.body;
 
@@ -130,9 +130,9 @@ async function active(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function reactive(req, res) {
+const reactive = async (req, res) => {
   try {
     const { clientUrl } = req.query;
     const { _id } = req.body;
@@ -161,9 +161,9 @@ async function reactive(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function changePassword(req, res) {
+const changePassword = async (req, res) => {
   try {
     const { userId, currentPassword, newPassword } = req.body;
     const user = req.user;
@@ -182,9 +182,9 @@ async function changePassword(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function forgotPassword(req, res) {
+const forgotPassword = async (req, res) => {
   try {
     const { clientUrl } = req.query;
     const { email } = req.body;
@@ -206,9 +206,9 @@ async function forgotPassword(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function resetPassword(req, res) {
+const resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
 
@@ -230,9 +230,9 @@ async function resetPassword(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function loginUser({ user, password }, req, res) {
+const loginUser = async ({ user, password }, req, res) => {
   try {
     if (password.length !== 0) {
       const validPassword = await bcrypt.compare(password, user.password);
@@ -252,9 +252,9 @@ async function loginUser({ user, password }, req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function registerUser(user, req, res) {
+const registerUser = async (user, req, res) => {
   try {
     const { clientUrl } = req.query;
 
@@ -282,7 +282,7 @@ async function registerUser(user, req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
 const authCtrl = {
   register,

@@ -1,10 +1,9 @@
 import { io } from '../index.js';
-import { Comment, Post, User } from '../models/index.js';
-import { generateRegexFilter } from '../utils/common.js';
+import { Comment, Notification, Post, User } from '../models/index.js';
 import { mapFollowUserId } from '../utils/mongoose.js';
 import { generateErrorResponse } from '../utils/response.js';
 
-async function getCurrentUser(req, res) {
+const getCurrentUser = async (req, res) => {
   try {
     const { _id } = req.user;
 
@@ -19,9 +18,9 @@ async function getCurrentUser(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function getUserInfo(req, res) {
+const getUserInfo = async (req, res) => {
   try {
     const { username } = req.params;
 
@@ -38,9 +37,9 @@ async function getUserInfo(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function updateProfile(req, res) {
+const updateCurrentUser = async (req, res) => {
   try {
     const user = req.user;
     const { name, email, username, avatar, bio } = req.body;
@@ -73,9 +72,9 @@ async function updateProfile(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function follow(req, res) {
+const follow = async (req, res) => {
   try {
     const currentUser = req.user;
     const { userId } = req.body;
@@ -95,16 +94,22 @@ async function follow(req, res) {
     await User.updateOne({ _id: userId }, { $push: { followers: currentUser._id } });
     const updatedUser = await User.findById(userId).select('followers').lean();
 
-    io.to(`${userId}`).emit('notify', {
+    const newNotification = new Notification({
+      userId: userId,
       type: 'follow',
-      post: {},
-      user: {
+      actionUser: {
+        _id: currentUser._id,
         name: currentUser.name,
         username: currentUser.username,
-        avatar: currentUser.avatar,
+        avatar: user.avatar,
       },
-      read: false,
-      createdAt: Date.now(),
+    });
+    await newNotification.save();
+
+    io.to(`${userId}`).emit('notify', {
+      type: 'follow',
+      user: currentUser.name,
+      url: `/profile/${currentUser.username}`,
     });
 
     await mapFollowUserId(updatedCurrentUser, updatedUser);
@@ -113,9 +118,9 @@ async function follow(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function unfollow(req, res) {
+const unfollow = async (req, res) => {
   try {
     const currentUser = req.user;
     const { userId } = req.body;
@@ -137,16 +142,22 @@ async function unfollow(req, res) {
 
     await mapFollowUserId(updatedCurrentUser, updatedUser);
 
+    await Notification.deleteOne({
+      userId: userId,
+      type: 'follow',
+      'actionUser._id': currentUser._id,
+    });
+
     res.send({ currentUser: updatedCurrentUser, selectedUser: updatedUser });
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
-async function search(req, res) {
+const search = async (req, res) => {
   try {
     const user = req.user;
-    const { q, followed } = req.query;
+    const { q, followed = 'false' } = req.query;
 
     let idFilter;
 
@@ -167,12 +178,12 @@ async function search(req, res) {
   } catch (error) {
     res.status(500).json(error);
   }
-}
+};
 
 const userCtrl = {
   getCurrentUser,
   getUserInfo,
-  updateProfile,
+  updateCurrentUser,
   follow,
   unfollow,
   search,

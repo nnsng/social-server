@@ -15,11 +15,14 @@ const commentSchema = new mongoose.Schema(
       required: true,
     },
     user: {
-      _id: mongoose.Schema.Types.ObjectId,
-      name: String,
-      avatar: String,
-      username: String,
-      bio: String,
+      type: {
+        _id: mongoose.Schema.Types.ObjectId,
+        name: String,
+        avatar: String,
+        username: String,
+        bio: String,
+      },
+      require: true,
     },
     likes: {
       type: [mongoose.Schema.Types.ObjectId],

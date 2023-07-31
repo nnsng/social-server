@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { User } from '../models/index.js';
 import { env, variables } from '../utils/env.js';
 
-export async function admin(req, res, next) {
+export const admin = async (req, res, next) => {
   try {
     const headerAuthorization = req.header('Authorization');
     if (!headerAuthorization) {
@@ -31,4 +31,4 @@ export async function admin(req, res, next) {
   } catch (error) {
     res.status(401).json(generateErrorResponse('auth.invalidToken'));
   }
-}
+};
