@@ -128,4 +128,9 @@ dist
 
 # End of https://www.toptal.com/developers/gitignore/api/node
 
+# IDE
 .vscode
+
+# lockfile
+package-lock.json
+yarn.lock
