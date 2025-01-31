@@ -1,5 +1,5 @@
 import express from 'express';
-import authCtrl from '../controllers/authCtrl.js';
+import authCtrl from '../controllers/authController.js';
 import { auth } from '../middleware/index.js';
 
 const authRouter = express.Router();
