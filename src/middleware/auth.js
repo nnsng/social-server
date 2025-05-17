@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { User } from '../models/index.js';
-import { env, variables } from '../utils/env.js';
+import { env } from '../utils/env.js';
 
 export const auth = async (req, res, next) => {
   try {
@@ -11,7 +11,7 @@ export const auth = async (req, res, next) => {
 
     const token = headerAuthorization.split(' ')[1];
 
-    const decoded = jwt.verify(token, env(variables.accessTokenSecret));
+    const decoded = jwt.verify(token, env.ACCESS_TOKEN_SECRET);
     if (!decoded) {
       return res.status(401).json(generateErrorResponse('auth.invalidAuth'));
     }

@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import slugify from 'slugify';
 import { User } from '../models/index.js';
 import { hashPassword, randomNumber } from '../utils/common.js';
-import { env, variables } from '../utils/env.js';
+import { env } from '../utils/env.js';
 import { generateAccessToken, generateActiveToken } from '../utils/generateToken.js';
 import { generateErrorResponse } from '../utils/response.js';
 import sendMail, { sendMailTypes } from '../utils/sendMail.js';
@@ -56,7 +56,7 @@ const googleLogin = async (req, res) => {
   try {
     const { idToken } = req.body;
 
-    const clientId = env(variables.googleClientId);
+    const clientId = env.GOOGLE_CLIENT_ID;
     const client = new OAuth2Client(clientId);
 
     const ticket = await client.verifyIdToken({
@@ -110,7 +110,7 @@ const active = async (req, res) => {
   try {
     const { token } = req.body;
 
-    const { _id } = jwt.verify(token, env(variables.activeTokenSecret));
+    const { _id } = jwt.verify(token, env.ACTIVE_TOKEN_SECRET);
 
     if (!_id) {
       return res.status(401).json(generateErrorResponse('auth.invalidAuth'));
@@ -212,7 +212,7 @@ const resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
 
-    const decoded = jwt.verify(token, env(variables.activeTokenSecret));
+    const decoded = jwt.verify(token, env.ACTIVE_TOKEN_SECRET);
     if (!decoded) {
       return res.status(401).json(generateErrorResponse('auth.invalidAuth'));
     }
