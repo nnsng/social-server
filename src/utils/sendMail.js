@@ -1,8 +1,8 @@
 import nodemailer from 'nodemailer';
-import { env, variables } from './env.js';
+import { env } from './env.js';
 
-const googleEmailAddress = env(variables.googleEmailAddress);
-const googleAppPassword = env(variables.googleAppPassword);
+const googleEmailAddress = env.GOOGLE_EMAIL_ADDRESS;
+const googleAppPassword = env.GOOGLE_APP_PASSWORD;
 
 export const sendMailTypes = {
   activeAccount: 'activeAccount',

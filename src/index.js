@@ -4,7 +4,7 @@ import http from 'http';
 import { connectToDatabase } from './config/database.js';
 import { connectToSocket } from './config/socket.js';
 import initRoutes from './routes/index.js';
-import { env, variables } from './utils/env.js';
+import { env } from './utils/env.js';
 
 const app = express();
 
@@ -22,11 +22,11 @@ export { io };
 initRoutes(app);
 
 // Database
-const URI = env(variables.mongoUri);
+const URI = env.MONGODB_URI;
 await connectToDatabase(URI);
 
 // Server listening
-const PORT = env(variables.port) || 4000;
+const PORT = env.PORT || 4000;
 server.listen(PORT, () => {
   console.log('Server is running on port', PORT);
 });
