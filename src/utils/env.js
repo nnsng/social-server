@@ -17,6 +17,6 @@ export const variables = {
   accessTokenSecret: 'ACCESS_TOKEN_SECRET',
 
   googleClientId: 'GOOGLE_CLIENT_ID',
-  senderEmailAddress: 'SENDER_EMAIL_ADDRESS',
-  senderEmailPassword: 'SENDER_EMAIL_PASSWORD',
+  googleEmailAddress: 'GOOGLE_EMAIL_ADDRESS',
+  googleAppPassword: 'GOOGLE_APP_PASSWORD',
 };

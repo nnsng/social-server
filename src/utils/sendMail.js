@@ -1,8 +1,8 @@
 import nodemailer from 'nodemailer';
 import { env, variables } from './env.js';
 
-const senderMailAddress = env(variables.senderEmailAddress);
-const senderMailPassword = env(variables.senderEmailPassword);
+const googleEmailAddress = env(variables.googleEmailAddress);
+const googleAppPassword = env(variables.googleAppPassword);
 
 export const sendMailTypes = {
   activeAccount: 'activeAccount',
@@ -14,8 +14,8 @@ const sendMail = async ({ mailto, url, type }) => {
     const transport = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: senderMailAddress,
-        pass: senderMailPassword,
+        user: googleEmailAddress,
+        pass: googleAppPassword,
       },
     });
 
@@ -25,7 +25,7 @@ const sendMail = async ({ mailto, url, type }) => {
     };
 
     const mailOptions = {
-      from: senderMailAddress,
+      from: googleEmailAddress,
       to: mailto,
       subject: subjects[type],
       html: generateHtml(url, type),
@@ -34,35 +34,44 @@ const sendMail = async ({ mailto, url, type }) => {
     await transport.sendMail(mailOptions);
   } catch (error) {
     console.log('sendMail', error);
+    throw error;
   }
 };
 
 const generateHtml = (url, type) => {
-  const isActive = type === sendMailTypes.activeAccount;
+  const titles = {
+    activeAccount: 'Welcome to 1social.',
+    resetPassword: 'Reset password',
+  };
 
-  const title = isActive ? 'Welcome to 1social.' : 'Reset password';
-  const description = isActive
-    ? 'Click the button below to validate your email address.'
-    : 'Click the button below to reset your password.';
-  const buttonLabel = isActive ? 'Active' : 'Reset';
+  const descriptions = {
+    activeAccount: 'Click the button below to validate your email address.',
+    resetPassword: 'Click the button below to reset your password.',
+  };
+
+  const buttonLabels = {
+    activeAccount: 'Active',
+    resetPassword: 'Reset',
+  };
+
   const mainColor = '#FF652F';
 
   return `
     <div style="border: 10px solid #ddd; padding: 40px 28px; font-size: 110%; border-radius: 8px;">
       <h2 style="text-align: center; text-transform: uppercase; color: ${mainColor}; margin-bottom: 28px;">
-        ${title}
+        ${titles[type]}
       </h2>
 
-      <p style="color: #333;">${description}</p>
-      
+      <p style="color: #333;">${descriptions[type]}</p>
+
       <div style="display: flex; align-items: center; justify-content: center;">
         <a href=${url} style="background: ${mainColor}; text-decoration: none; color: white; padding: 8px 20px; margin: 10px 0; display: inline-block; text-transform: uppercase; border-radius: 4px;">
-          ${buttonLabel}
+          ${buttonLabels[type]}
         </a>
       </div>
 
       <p style="color: #333;">If the button doesn't work, you can also click on the link below:</p>
-          
+
       <a href=${url} style="text-decoration: underline; color: ${mainColor}">${url}</a>
     </div>
   `;
