@@ -1,11 +1,11 @@
 import bcrypt from 'bcryptjs';
-import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import slugify from 'slugify';
 import { User } from '../models/index.js';
 import { hashPassword, randomNumber } from '../utils/common.js';
 import { env } from '../utils/env.js';
 import { generateAccessToken, generateActiveToken } from '../utils/generateToken.js';
+import { getGoogleUserInfo } from '../utils/google.js';
 import { generateErrorResponse } from '../utils/response.js';
 import sendMail, { sendMailTypes } from '../utils/sendMail.js';
 
@@ -54,53 +54,45 @@ const register = async (req, res) => {
 
 const googleLogin = async (req, res) => {
   try {
-    const { idToken } = req.body;
+    const { accessToken } = req.body;
 
-    const clientId = env.GOOGLE_CLIENT_ID;
-    const client = new OAuth2Client(clientId);
-
-    const ticket = await client.verifyIdToken({
-      idToken,
-      audience: clientId,
-    });
-
-    const { email, name, picture } = ticket.getPayload();
+    const { email, name, picture } = await getGoogleUserInfo(accessToken);
 
     const existedUser = await User.findOne({ email });
 
     if (existedUser) {
       const data = { user: existedUser, password: '' };
-      loginUser(data, req, res);
-    } else {
-      const initUsername = slugify(name, {
-        trim: true,
-        replacement: '-',
-        lower: true,
-        locale: 'vi',
-      });
-      let username = initUsername;
-      let isExist = true;
-      while (isExist) {
-        const existedUser = await User.findOne({ username }).lean();
-        if (existedUser) {
-          username = initUsername + randomNumber(0, 1000);
-        } else {
-          isExist = false;
-        }
-      }
-
-      const newUser = {
-        name,
-        email,
-        username,
-        avatar: picture,
-        password: '',
-        type: 'google',
-        active: false,
-      };
-
-      registerUser(newUser, req, res);
+      return loginUser(data, req, res);
     }
+
+    const initUsername = slugify(name, {
+      trim: true,
+      replacement: '-',
+      lower: true,
+      locale: 'vi',
+    });
+    let username = initUsername;
+    let isExist = true;
+    while (isExist) {
+      const existedUser = await User.findOne({ username }).lean();
+      if (existedUser) {
+        username = initUsername + randomNumber(0, 1000);
+      } else {
+        isExist = false;
+      }
+    }
+
+    const newUser = {
+      name,
+      email,
+      username,
+      avatar: picture,
+      password: '',
+      type: 'google',
+      active: false,
+    };
+
+    registerUser(newUser, req, res);
   } catch (error) {
     res.status(500).json(error);
   }
@@ -242,8 +234,13 @@ const loginUser = async ({ user, password }, req, res) => {
     }
 
     const loggedInUser = await User.findById(user._id).select('-password -saved').lean();
-    if (!loggedInUser.active) {
+    if (!loggedInUser.active && user.type === 'local') {
       return res.status(400).json(generateErrorResponse('auth.alreadyActive'));
+    }
+
+    if (user.type === 'google') {
+      const activeToken = generateActiveToken({ _id: loggedInUser._id });
+      return res.send({ activeToken });
     }
 
     const accessToken = generateAccessToken({ _id: loggedInUser._id });
@@ -267,9 +264,7 @@ const registerUser = async (user, req, res) => {
     const activeToken = generateActiveToken({ _id });
 
     if (user.type === 'google') {
-      const accessToken = generateAccessToken({ _id });
-      const googleUser = await User.findById(_id).select('-password -saved').lean();
-      return res.send({ user: googleUser, token: accessToken, activeToken });
+      return res.send({ activeToken });
     }
 
     await sendMail({
