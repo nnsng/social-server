@@ -5,6 +5,7 @@ import commentRouter from './commentRoute.js';
 import notificationRouter from './notificationRoute.js';
 import postRouter from './postRoute.js';
 import userRouter from './userRoute.js';
+import messageRouter from './messageRoute.js';
 
 const initRoutes = (app) => {
   app.use('/api/auth', authRouter);
@@ -12,6 +13,7 @@ const initRoutes = (app) => {
   app.use('/api/posts', auth, postRouter);
   app.use('/api/comments', auth, commentRouter);
   app.use('/api/notification', auth, notificationRouter);
+  app.use('/api/messages', auth, messageRouter);
   app.use('/api/admin', admin, adminRouter);
 };
 
