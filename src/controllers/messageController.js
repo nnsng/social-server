@@ -13,9 +13,7 @@ const getConversations = async (req, res) => {
       .lean();
 
     const formattedConversations = conversations.map((conv) => {
-      const otherParticipant = conv.participants.find(
-        (p) => p._id.toString() !== _id.toString()
-      );
+      const otherParticipant = conv.participants.find((p) => p._id.toString() !== _id.toString());
       return {
         ...conv,
         otherParticipant,
@@ -32,9 +30,7 @@ const getMessages = async (req, res) => {
   try {
     const { conversationId } = req.params;
 
-    const messages = await Message.find({ conversationId })
-      .sort({ createdAt: 1 })
-      .lean();
+    const messages = await Message.find({ conversationId }).sort({ createdAt: 1 }).lean();
 
     res.send(messages);
   } catch (error) {
